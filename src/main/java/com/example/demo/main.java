@@ -1,29 +1,33 @@
 package com.example.demo;
 
 import javafx.application.Application;
-import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 public class main extends Application implements Style {
     private Stage window;
     private Scene PreviousScene;
+    private String UserType;
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
         // Layouts
-        StackPane loginPane = new StackPane();
         StackPane menuPane = new StackPane();
+        BorderPane loginOPane = new BorderPane();
+        BorderPane loginFPane = new BorderPane();
         // Scenes
-        Scene LoginOptions = new Scene(loginPane,1920,1080);
         Scene menu = new Scene(menuPane, 1920, 1080);
+        Scene LoginOptions = new Scene(loginOPane,1920,1080);
+        Scene LoginForm = new Scene(loginFPane,1920,1080);
+
         // Menu Page
         {
             String[] bLabels = new String[]{"Login", "Settings", "Exit"};
@@ -40,31 +44,76 @@ public class main extends Application implements Style {
                 stage.setScene(LoginOptions);
             });
             button[2].setOnAction(e -> stage.close());
-            VBox blist = new VBox(50);
-            blist.setStyle(BGColor);
-            blist.setAlignment(Pos.CENTER);
-            blist.getChildren().add(label);
-            blist.getChildren().addAll(button);
-            menuPane.getChildren().addAll(blist);
+            VBox mlist = new VBox(50);
+            mlist.setStyle(BGColor);
+            mlist.setAlignment(Pos.CENTER);
+            mlist.getChildren().add(label);
+            mlist.getChildren().addAll(button);
+            menuPane.getChildren().addAll(mlist);
         }
-        // Login Page
+        // Login Options Page
         {
-            String[] labels = new String[]{"Admin Login","Patient Login","New Patient"};
+            String[] labels = new String[]{"Admin Login","Physician Login"};
             Button[] button = new Button[labels.length];
             for (int i = 0; i < labels.length; i++) {
                 button[i] = new Button(labels[i]);
                 button[i].setMinSize(bwidth, blength);
                 button[i].setStyle(ButtonStyle);
             }
+            button[0].setOnAction(e -> {
+                setUserType("Admin");
+                PreviousScene = window.getScene();
+                window.setScene(LoginForm);
+            });
+            button[1].setOnAction(e -> {
+                setUserType("Doctor");
+                PreviousScene = window.getScene();
+                window.setScene(LoginForm);
+            });
+            Button back = BackButton();
             VBox blist = new VBox(50);
-            blist.setStyle(BGColor);
+            loginOPane.setStyle(BGColor);
             blist.setAlignment(Pos.CENTER);
             blist.getChildren().addAll(button);
-            loginPane.getChildren().addAll(blist,BackButton());
+            loginOPane.setCenter(blist);
+            loginOPane.setBottom(back);
+        }
+        // Login Form Page
+        {
+            final String CORRECT_USERNAME = "admin";
+            final String CORRECT_PASSWORD = "pass123";
+            Label usernameLabel = new Label("Username:");
+            usernameLabel.setStyle(H1);
+            Label passwordLabel = new Label("Password:");
+            passwordLabel.setStyle(H1);
+            TextField usernameField = new TextField();
+            usernameField.setMaxSize(320,200);
+            PasswordField passwordField = new PasswordField();
+            passwordField.setMaxSize(320,200);
+            Label resultLabel = new Label();
+            resultLabel.setStyle(H1);
+            Button loginButton = new Button("Login");
+            Button backButton = BackButton();
+            loginButton.setStyle(ButtonStyle);
+            loginButton.setOnAction(e -> {
+                String enteredUsername = usernameField.getText();
+                String enteredPassword = passwordField.getText();
+                if (enteredUsername.equals(CORRECT_USERNAME) && enteredPassword.equals(CORRECT_PASSWORD)) {
+                    resultLabel.setText("Login successful!");
+                } else {
+                    resultLabel.setText("Login failed. Please check your credentials." + getUserType());
+                }
+            });
+            VBox form = new VBox(10);
+            form.getChildren().addAll(usernameLabel, usernameField, passwordLabel, passwordField, loginButton, resultLabel);
+            form.setAlignment(Pos.CENTER);
+            form.setPrefSize(400,400);
+            loginFPane.setCenter(form);
+            loginFPane.setBottom(backButton);
         }
         // DashBoard
         {
-
+            String[] labels = new String[]{"Physician Login","Admin Login"};
         }
         window.setScene(menu);
         window.show();
@@ -72,8 +121,7 @@ public class main extends Application implements Style {
     public static void main(String[] args) {
         launch();
     }
-    public StackPane BackButton(){
-        StackPane layout = new StackPane();
+    public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
         backbutton.setStyle(ButtonStyle);
@@ -82,9 +130,13 @@ public class main extends Application implements Style {
             window.setScene(PreviousScene);
             PreviousScene = temp;
         });
-        layout.getChildren().addAll(backbutton);
-        layout.setAlignment(Pos.BOTTOM_LEFT);
-        return layout;
+        return backbutton;
+    }
+    public String getUserType() {
+        return UserType;
+    }
+    public void setUserType(String userType) {
+        this.UserType = userType;
     }
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
