@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.company;
 
 public interface Style {
     String H1 = "-fx-font-weight: bold; -fx-font-size: 32pt; -fx-font-style: italic; -fx-font-family: Arial;";

@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.company;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -10,12 +10,10 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
 import java.io.IOException;
-
-public class main extends Application implements Style {
-    private Stage window;
-    private String UserType;
+public class Main extends Application implements Style {
+    Stage window;
+    String UserType;
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
@@ -28,7 +26,6 @@ public class main extends Application implements Style {
         Scene Menu = new Scene(menuPane,Resolution[0],Resolution[1]);
         Scene LoginOptions = new Scene(loginOPane,Resolution[0],Resolution[1]);
         Scene LoginForm = new Scene(loginFPane,Resolution[0],Resolution[1]);
-
         // Menu Page
         {
             String[] bLabels = new String[]{"Login", "Settings", "Exit"};
@@ -109,7 +106,6 @@ public class main extends Application implements Style {
                     resultLabel.setStyle(Warning + H2);
                 }
             });
-
             GridPane form = new GridPane();
             form.add(usernameLabel, 0, 0);
             form.add(usernameField, 1, 0);
@@ -119,10 +115,10 @@ public class main extends Application implements Style {
             form.add(loginButton, 0, 2);
             form.setHgap(20);
             form.setVgap(25);
+            form.setAlignment(Pos.CENTER);
             form.setPadding(new Insets(75,40,75,40));
             form.setStyle("-fx-background-color: #eeeeee");
             form.setMaxSize(680,330);
-
             loginFPane.setCenter(form);
             loginFPane.setStyle(BGColor);
             loginFPane.setBottom(backButton);
