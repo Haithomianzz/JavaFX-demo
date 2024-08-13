@@ -462,60 +462,9 @@ public class Main extends Application implements Style {
         window.setScene(new Scene(layout));
         window.show();
     }
-    public Set<Doctor> getSet(){return Doctor.loadToHashSet();}
-    public Set<Doctor> getDoctors() {
-        Set<Doctor> doctors = new HashSet<>();
-        {
-            doctors.add(new Doctor("Hassan", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-        }
-        return doctors;
-    }
-    public Set<Patient> getPatients(){
-        Set<Patient> patients = new HashSet<>();
-        {
-            for (int i = 0; i < 6; i++) {
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01046523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01056523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01066523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01086523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01096523658", "male", "ta3ban", "special way", "private", true, 23));
-            }
-        }
-        return patients;
-    }
+    public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
+    public Set<Patient> getPatients(){return Patient.loadToHashSet();}
+    
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
