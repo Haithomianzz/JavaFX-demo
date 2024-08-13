@@ -14,7 +14,7 @@ public class Patient extends Person {
     private boolean emergency;
     private int roomNumber;
     private static int lastId = loadLastId();
-    private final int ID;
+    private final int ID = lastId++;
     private static Set<Patient> patients = new HashSet<>();
 
     static {
@@ -31,9 +31,12 @@ public class Patient extends Person {
         this.diagnosis = diagnosis;
         this.emergency = emergency;
         this.roomNumber = roomNumber;
-        ID = lastId++;
         addPatient(this);
     }
+
+    public Patient() {
+    }
+
     private void addPatient(Patient patient) {
         patients.add(patient);
     }
@@ -172,13 +175,7 @@ public class Patient extends Person {
         return lastId;
     }
 
-    private static HashSet<Patient> loadToHashSet(){
-        HashSet<Patient> patientsCopy = new HashSet<>();
-        for (Patient i : Handler.loadPatients().values()) {
-            patientsCopy.add(i);
-        }
-        return patientsCopy;
-    }
+    private static HashSet<Patient> loadToHashSet(){ return new HashSet<>(Handler.loadPatients().values()); }
 
     @Override
     public String toString() {

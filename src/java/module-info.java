@@ -8,5 +8,7 @@ module com.company {
 
 
     opens com.company to javafx.fxml;
+    opens com.functions to javafx.base;
+
     exports com.company;
 }

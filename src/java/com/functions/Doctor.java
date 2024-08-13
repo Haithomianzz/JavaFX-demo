@@ -29,6 +29,10 @@ public class Doctor extends Person{
         }
     }
 
+    public Doctor() {
+        super();
+    }
+
     public String getSpecialty() {
         return specialty;
     }
@@ -137,12 +141,12 @@ public class Doctor extends Person{
         return lastId;
     }
 
-    private static HashSet<Doctor> loadToHashSet(){
-        HashSet<Doctor> doctorsCopy = new HashSet<>();
-        for (Doctor i : Handler.loadDoctors().values()) {
-            doctorsCopy.add(i);
-        }
-        return doctorsCopy;
+    public static HashSet<Doctor> loadToHashSet(){
+        return new HashSet<>(Handler.loadDoctors().values());
+    }
+
+    public void setSpecialty(String specialty) {
+        this.specialty = specialty;
     }
 
     @Override

@@ -23,7 +23,7 @@ public class EmergencyPatient extends Patient {
     }
 
     
-    // public boolean addDoctor(Doctor doctor) {
+    // public boolean editDoctor(Doctor doctor) {
     //     if (doctor == null) return false;
     //     Doctor[] newDoctors = new Doctor[doctorInCharge.length + 1];
     //     System.arraycopy(doctorInCharge, 0, newDoctors, 0, doctorInCharge.length);

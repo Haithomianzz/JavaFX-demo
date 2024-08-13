@@ -86,11 +86,7 @@ public class Appointment {
     }
 
     private static HashSet<Appointment> loadToHashSet(){
-        HashSet<Appointment> appointmentsCopy = new HashSet<>();
-        for (Appointment i : Handler.loadAppointments().values()) {
-            appointmentsCopy.add(i);
-        }
-        return appointmentsCopy;
+        return new HashSet<>(Handler.loadAppointments().values());
     }
 
 }

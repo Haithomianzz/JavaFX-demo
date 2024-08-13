@@ -1,9 +1,9 @@
 package com.functions;
 
 public class Person {
-    protected String name;
-    protected String address;
-    protected String phoneNumber;
+     protected String name;
+     protected String address;
+     protected String phoneNumber;
 
     public Person(String name, String address, String phoneNumber) {
         this.name = name;
@@ -11,6 +11,20 @@ public class Person {
         this.phoneNumber = phoneNumber;
     }
 
+    public Person() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
 
     public void setName(String name) {
         this.name = name;
