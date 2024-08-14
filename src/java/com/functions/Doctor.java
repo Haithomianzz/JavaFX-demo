@@ -14,7 +14,7 @@ public class Doctor extends Person{
     private String specialty;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
-    private static HashSet<Doctor> doctors = new HashSet<>();
+    private static HashSet<Doctor> doctors = new HashSet<>(loadToHashSet(Main.doctorsObservableList));
 
     static {
     doctors = loadToHashSet(); // Load from database after initialization
@@ -96,8 +96,6 @@ public class Doctor extends Person{
         return true;
     }
 
-
-
     public boolean delete(Doctor doctor) {
         DatabaseConnector.connect();
         String query = "SELECT * FROM doctors";
@@ -141,8 +139,12 @@ public class Doctor extends Person{
         return lastId;
     }
 
-    public static HashSet<Doctor> loadToHashSet(){
+    private static HashSet<Doctor> loadToHashSet(){
         return new HashSet<>(Handler.loadDoctors().values());
+    }
+
+    private static HashSet<Doctor> loadToHashSet(List<Doctor> doctorList) {
+        return new HashSet<>(doctorList);
     }
 
     public void setSpecialty(String specialty) {
