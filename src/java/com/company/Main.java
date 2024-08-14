@@ -34,20 +34,21 @@ public class Main extends Application implements Style {
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
-        int[] Resolution = {1920, 1080};
+        int[] Resolution = {1280, 720};
         // Layouts
         BorderPane menuPane = new BorderPane();
         BorderPane loginOPane = new BorderPane();
         BorderPane loginFPane = new BorderPane();
         VBox doctorsT = new VBox(10);
         VBox patientsT = new VBox(10);
+        VBox adminDashboard = new VBox(20);
         // Scenes
         Scene Menu = new Scene(menuPane, Resolution[0], Resolution[1]);
         Scene LoginOptions = new Scene(loginOPane, Resolution[0], Resolution[1]);
         Scene LoginForm = new Scene(loginFPane, Resolution[0], Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT);
         Scene PatientsTable = new Scene(patientsT);
-
+        Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
         // Menu Page
         {
             String[] bLabels = new String[]{"Login", "Settings", "Exit"};
@@ -96,7 +97,6 @@ public class Main extends Application implements Style {
         }
         // Login Form Page
         {
-
             Label usernameLabel = new Label("Username:");
             usernameLabel.setStyle(H2);
             Label passwordLabel = new Label("Password:");
@@ -147,8 +147,6 @@ public class Main extends Application implements Style {
         // Admin DashBoard
         {
             String[] labels = new String[]{"Physician Login", "Admin Login"};
-            {
-                VBox adminDashboard = new VBox(20);
                 adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
                 adminDashboard.setAlignment(Pos.CENTER);
 
@@ -190,7 +188,6 @@ public class Main extends Application implements Style {
                 adminGrid.add(logoutButton, 2, 1);
 
                 adminDashboard.getChildren().addAll(adminGrid);
-                Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
 
 
                 loginButton.setOnAction(e -> {
@@ -205,7 +202,7 @@ public class Main extends Application implements Style {
                         resultLabel.setStyle(Warning + H2);
                     }
                 });
-            }
+
         }
 
         // Patients Table
@@ -214,11 +211,11 @@ public class Main extends Application implements Style {
             PatLabel.setStyle(TableLabel);
 
             ObservableList<Patient> patients = FXCollections.observableArrayList();
-            //patients.addAll(getPatients());
+            patients.addAll(getPatients());
             TableView<Patient> patientsTable = new TableView<>(patients);
             patientsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             patientsTable.setFixedCellSize(40);
-            patientsTable.setPrefHeight(995);
+            patientsTable.setPrefHeight(750);
 
             TableColumn<Patient,Integer> idCol = new TableColumn<>("ID");
             idCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
@@ -264,7 +261,7 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(LoginForm));
+            button[0].setOnAction(e -> window.setScene(AdminDashboard));
             button[2].setOnAction(e -> {
                 if (patientsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editPatient(patientsTable.getSelectionModel().getSelectedItems(), 1);
@@ -316,7 +313,7 @@ public class Main extends Application implements Style {
         doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
         doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
-        doctorsTable.setPrefHeight(995);
+        doctorsTable.setPrefHeight(695);
         doctorsTable.setFixedCellSize(40);
         HBox bar = new HBox(42);
         bar.setAlignment(Pos.CENTER);
@@ -327,7 +324,7 @@ public class Main extends Application implements Style {
             button[i].setPrefSize(210, 80);
             button[i].setStyle(ButtonStyle);
         }
-        button[0].setOnAction(e -> window.setScene(LoginForm));
+        button[0].setOnAction(e -> window.setScene(AdminDashboard));
         button[2].setOnAction(e -> {
             if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
                 editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
@@ -349,15 +346,14 @@ public class Main extends Application implements Style {
         doctorsT.setStyle("-fx-background-color: #FFFFFF");
         doctorsT.setAlignment(Pos.CENTER);
         }
+        window.setScene(PatientsTable);
+//        window.setScene(Menu);
+        window.show();
         Random random = new Random();
         if (random.nextDouble() < ALERT_PROBABILITY) {
 
             AlertBox.alert("Warning", "Patient in room X needs help", "OK");
         }
-
-        //window.setScene(PatientsTable);
-        window.setScene(Menu);
-        window.show();
     }
 
 
@@ -544,7 +540,7 @@ public class Main extends Application implements Style {
         window.show();
     }
     public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
-   // public Set<Patient> getPatients(){return Patient.loadToHashSet();}
+    public Set<Patient> getPatients(){return Patient.loadToHashSet();}
     
     public Button BackButton(){
         Button backbutton = new Button("Back");

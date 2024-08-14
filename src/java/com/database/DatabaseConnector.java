@@ -8,9 +8,9 @@ import java.sql.SQLException;
 
 public class DatabaseConnector {
 
-    private final static String CONN_STRING = "jdbc:mysql://localhost:3306/healthcare";
-    private final static String username = "root";
-    private  static final  String password = "Omar2005Helwa";
+    private final static String CONN_STRING = "jdbc:mysql://4.233.221.225:3306/healthcare";
+    private final static String username = "applicationAdmin";
+    private  static final  String password = "nabnuAdmin";
     private static MysqlDataSource dataSource = new MysqlDataSource();
 
     public static void connect() {
