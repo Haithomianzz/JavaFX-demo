@@ -15,7 +15,9 @@ public class Patient extends Person {
     private int roomNumber;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
+
     private static Set<Patient> patients = new HashSet<>(loadToHashSet(Main.patientsObservableList));
+
 
     static {
         patients = loadToHashSet(); // Load from database after initialization
@@ -175,7 +177,7 @@ public class Patient extends Person {
         return lastId;
     }
 
-    private static HashSet<Patient> loadToHashSet(){ return new HashSet<>(Handler.loadPatients().values()); }
+    public static HashSet<Patient> loadToHashSet(){ return new HashSet<>(Handler.loadPatients().values()); }
 
     private static HashSet<Patient> loadToHashSet(List<Patient> patientList) {
         return new HashSet<>(patientList);

@@ -8,9 +8,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+
+import java.util.Random;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -21,26 +26,37 @@ import static com.database.Handler.verifyCredentials;
 public class Main extends Application implements Style {
     Stage window;
     String UserType;
+
+    Button loginButton;
+    Label resultLabel;
+    TextField usernameField;
+    PasswordField passwordField;
+    String CORRECT_USERNAME = "admin";
+    String CORRECT_PASSWORD = "pass123";
+    static double ALERT_PROBABILITY = 0.8;
+
     public static ObservableList<Patient> patientsObservableList;
     public static ObservableList<Doctor> doctorsObservableList;
+
 
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
-        int[] Resolution = {1920, 1080};
+        int[] Resolution = {1280, 720};
         // Layouts
         BorderPane menuPane = new BorderPane();
         BorderPane loginOPane = new BorderPane();
         BorderPane loginFPane = new BorderPane();
         VBox doctorsT = new VBox(10);
         VBox patientsT = new VBox(10);
+        VBox adminDashboard = new VBox(20);
         // Scenes
         Scene Menu = new Scene(menuPane, Resolution[0], Resolution[1]);
         Scene LoginOptions = new Scene(loginOPane, Resolution[0], Resolution[1]);
         Scene LoginForm = new Scene(loginFPane, Resolution[0], Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT);
         Scene PatientsTable = new Scene(patientsT);
-
+        Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
         // Menu Page
         {
             String[] bLabels = new String[]{"Login", "Settings", "Exit"};
@@ -89,26 +105,25 @@ public class Main extends Application implements Style {
         }
         // Login Form Page
         {
-            String CORRECT_USERNAME = "admin";
-            String CORRECT_PASSWORD = "pass123";
             Label usernameLabel = new Label("Username:");
             usernameLabel.setStyle(H2);
             Label passwordLabel = new Label("Password:");
             passwordLabel.setStyle(H2);
-
-            TextField usernameField = new TextField();
+          
+            usernameField = new TextField();
             usernameField.setStyle(H3);
             usernameField.setPrefSize(350, 200);
             usernameField.setPromptText("Username");
+            passwordField = new PasswordField();
 
-            PasswordField passwordField = new PasswordField();
             passwordField.setPrefSize(350, 200);
             passwordField.setPromptText("Password");
 
             passwordField.setStyle(H3);
-            Label resultLabel = new Label();
+            resultLabel = new Label();
             resultLabel.setMaxSize(400, 120);
-            Button loginButton = new Button("Login");
+
+            loginButton = new Button("Login");
 
             loginButton.setMaxSize(200, 120);
 
@@ -147,10 +162,67 @@ public class Main extends Application implements Style {
             loginFPane.setStyle(BGColor);
             loginFPane.setBottom(backButton);
         }
-        // DashBoard
+        // Admin DashBoard
         {
             String[] labels = new String[]{"Physician Login", "Admin Login"};
+                adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
+                adminDashboard.setAlignment(Pos.CENTER);
+
+
+                Button doctorsButton = new Button("Doctors");
+                doctorsButton.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
+                doctorsButton.setStyle(Style.ButtonStyle);
+                doctorsButton.setOnAction(e -> window.setScene(DoctorsTable));
+
+                Button patientsButton = new Button("Patients");
+                patientsButton.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
+                patientsButton.setStyle(Style.ButtonStyle);
+                patientsButton.setOnAction(e -> window.setScene(PatientsTable));
+
+                Button appointmentsButton = new Button("Appointments");
+                appointmentsButton.setGraphic(new ImageView(new Image(Style.APPTS_ICON)));
+                appointmentsButton.setStyle(Style.ButtonStyle);
+                //appointmentsButton.setOnAction(e -> window.setScene(AppointmentsTable));
+
+                Button roomsButton = new Button("Rooms");
+                roomsButton.setGraphic(new ImageView(new Image(Style.ROOM_ICON)));
+                roomsButton.setStyle(Style.ButtonStyle);
+                //roomsButton.setOnAction(e -> window.setScene(RoomsTable));
+
+                Button logoutButton = new Button("Log Out");
+                logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
+                logoutButton.setStyle(Style.ButtonStyle);
+                logoutButton.setOnAction(e -> window.setScene(Menu));
+
+
+                GridPane adminGrid = new GridPane();
+                adminGrid.setHgap(20);
+                adminGrid.setVgap(20);
+                adminGrid.setAlignment(Pos.CENTER);
+                adminGrid.add(doctorsButton, 0, 0);
+                adminGrid.add(patientsButton, 1, 0);
+                adminGrid.add(appointmentsButton, 2, 0);
+                adminGrid.add(roomsButton, 0, 1);
+                adminGrid.add(logoutButton, 2, 1);
+
+                adminDashboard.getChildren().addAll(adminGrid);
+
+
+                loginButton.setOnAction(e -> {
+                    String enteredUsername = usernameField.getText();
+                    String enteredPassword = passwordField.getText();
+                    if (enteredUsername.equals(CORRECT_USERNAME) && enteredPassword.equals(CORRECT_PASSWORD)) {
+                        resultLabel.setText("Successful Login!");
+                        resultLabel.setStyle(Success + H2);
+                        window.setScene(AdminDashboard);
+                    } else {
+                        resultLabel.setText("Incorrect Credentials!");
+                        resultLabel.setStyle(Warning + H2);
+                    }
+                });
+
         }
+
         // Patients Table
         {
             Label PatLabel = new Label("Patients Table");
@@ -161,7 +233,7 @@ public class Main extends Application implements Style {
             TableView<Patient> patientsTable = new TableView<>(patients);
             patientsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             patientsTable.setFixedCellSize(40);
-            patientsTable.setPrefHeight(995);
+            patientsTable.setPrefHeight(750);
 
             TableColumn<Patient,Integer> idCol = new TableColumn<>("ID");
             idCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
@@ -207,7 +279,7 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(LoginForm));
+            button[0].setOnAction(e -> window.setScene(AdminDashboard));
             button[2].setOnAction(e -> {
                 if (patientsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editPatient(patientsTable.getSelectionModel().getSelectedItems(), 1);
@@ -261,7 +333,7 @@ public class Main extends Application implements Style {
         doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
         doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
-        doctorsTable.setPrefHeight(995);
+        doctorsTable.setPrefHeight(695);
         doctorsTable.setFixedCellSize(40);
         HBox bar = new HBox(42);
         bar.setAlignment(Pos.CENTER);
@@ -272,7 +344,7 @@ public class Main extends Application implements Style {
             button[i].setPrefSize(210, 80);
             button[i].setStyle(ButtonStyle);
         }
-        button[0].setOnAction(e -> window.setScene(LoginForm));
+        button[0].setOnAction(e -> window.setScene(AdminDashboard));
         button[2].setOnAction(e -> {
             if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
                 editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
@@ -334,10 +406,19 @@ public class Main extends Application implements Style {
             doctorsT.setAlignment(Pos.CENTER);
         }
         window.setScene(PatientsTable);
+//        window.setScene(Menu);
         window.show();
+        Random random = new Random();
+        if (random.nextDouble() < ALERT_PROBABILITY) {
+
+            AlertBox.alert("Warning", "Patient in room X needs help", "OK");
+        }
     }
+
+
+
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 
 
