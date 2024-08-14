@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.database.Handler.verifyCredentials;
+
 public class Main extends Application implements Style {
     Stage window;
     String UserType;
@@ -90,25 +92,34 @@ public class Main extends Application implements Style {
             usernameLabel.setStyle(H2);
             Label passwordLabel = new Label("Password:");
             passwordLabel.setStyle(H2);
+
             TextField usernameField = new TextField();
             usernameField.setStyle(H3);
             usernameField.setPrefSize(350, 200);
             usernameField.setPromptText("Username");
+
             PasswordField passwordField = new PasswordField();
             passwordField.setPrefSize(350, 200);
             passwordField.setPromptText("Password");
+
             passwordField.setStyle(H3);
             Label resultLabel = new Label();
             resultLabel.setMaxSize(400, 120);
             Button loginButton = new Button("Login");
+
             loginButton.setMaxSize(200, 120);
+
             Button backButton = BackButton();
+
             backButton.setOnAction(e -> window.setScene(LoginOptions));
+
             loginButton.setStyle(ButtonStyle);
+
             loginButton.setOnAction(e -> {
                 String enteredUsername = usernameField.getText();
                 String enteredPassword = passwordField.getText();
-                if (enteredUsername.equals(CORRECT_USERNAME) && enteredPassword.equals(CORRECT_PASSWORD)) {
+
+                if (verifyCredentials(enteredUsername, enteredPassword)) {
                     resultLabel.setText("Successful Login!");
                     resultLabel.setStyle(Success + H2);
                 } else {
@@ -217,66 +228,66 @@ public class Main extends Application implements Style {
         }
         // Doctors Table
         {
-        Label DocLabel = new Label("Doctors Table");
-        DocLabel.setStyle(TableLabel);
-        TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
-        docCol.setPrefWidth(100);
-        docCol.setStyle(H3);
-        docCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+            Label DocLabel = new Label("Doctors Table");
+            DocLabel.setStyle(TableLabel);
+            TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
+            docCol.setPrefWidth(100);
+            docCol.setStyle(H3);
+            docCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
 
-        TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
-        nameCol.setPrefWidth(500);
-        nameCol.setStyle(H3);
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+            TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
+            nameCol.setPrefWidth(500);
+            nameCol.setStyle(H3);
+            nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<Doctor, String> phoneCol = new TableColumn<>("Phone Number");
-        phoneCol.setPrefWidth(250);
-        phoneCol.setStyle(H3);
-        phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
+            TableColumn<Doctor, String> phoneCol = new TableColumn<>("Phone Number");
+            phoneCol.setPrefWidth(250);
+            phoneCol.setStyle(H3);
+            phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
 
-        TableColumn<Doctor, String> departmentCol = new TableColumn<>("Department");
-        departmentCol.setStyle(H3);
-        departmentCol.setPrefWidth(350);
-        departmentCol.setCellValueFactory(new PropertyValueFactory<>("specialty"));
+            TableColumn<Doctor, String> departmentCol = new TableColumn<>("Department");
+            departmentCol.setStyle(H3);
+            departmentCol.setPrefWidth(350);
+            departmentCol.setCellValueFactory(new PropertyValueFactory<>("specialty"));
 
-        ObservableList<Doctor> doctors = FXCollections.observableArrayList();
-        doctors.addAll(getDoctors());
-        TableView<Doctor> doctorsTable = new TableView<>(doctors);
-        doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
-        doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
-        doctorsTable.setPrefHeight(995);
-        doctorsTable.setFixedCellSize(40);
-        HBox bar = new HBox(42);
-        bar.setAlignment(Pos.CENTER);
-        String[] labels = new String[]{"Back", "Save", "Edit", "Add", "Delete"};
-        Button[] button = new Button[labels.length];
-        for (int i = 0; i < labels.length; i++) {
-            button[i] = new Button(labels[i]);
-            button[i].setPrefSize(210, 80);
-            button[i].setStyle(ButtonStyle);
-        }
-        button[0].setOnAction(e -> window.setScene(LoginForm));
-        button[2].setOnAction(e -> {
-            if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
-                editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
-            else
-                AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
+            ObservableList<Doctor> doctors = FXCollections.observableArrayList();
+            doctors.addAll(getDoctors());
+            TableView<Doctor> doctorsTable = new TableView<>(doctors);
+            doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
+            doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+            doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
+            doctorsTable.setPrefHeight(995);
+            doctorsTable.setFixedCellSize(40);
+            HBox bar = new HBox(42);
+            bar.setAlignment(Pos.CENTER);
+            String[] labels = new String[]{"Back", "Save", "Edit", "Add", "Delete"};
+            Button[] button = new Button[labels.length];
+            for (int i = 0; i < labels.length; i++) {
+                button[i] = new Button(labels[i]);
+                button[i].setPrefSize(210, 80);
+                button[i].setStyle(ButtonStyle);
+            }
+            button[0].setOnAction(e -> window.setScene(LoginForm));
+            button[2].setOnAction(e -> {
+                if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
+                    editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
+                else
+                    AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
 
-        });
+            });
 
-        button[3].setOnAction(e -> editDoctor(doctors, 0));
-        button[4].setOnAction(e -> {
-            if (!doctorsTable.getSelectionModel().getSelectedItems().isEmpty()) {
-                doctors.removeAll(doctorsTable.getSelectionModel().getSelectedItems());
-                doctorsTable.getSelectionModel().clearSelection();
-            } else
-                AlertBox.alert("Warning", "No Doctor Selected, Please Select Doctor(s) to Delete!", "Got it");
-        });
-        bar.getChildren().addAll(button);
-        doctorsT.getChildren().addAll(DocLabel, doctorsTable, bar);
-        doctorsT.setStyle("-fx-background-color: #FFFFFF");
-        doctorsT.setAlignment(Pos.CENTER);
+            button[3].setOnAction(e -> editDoctor(doctors, 0));
+            button[4].setOnAction(e -> {
+                if (!doctorsTable.getSelectionModel().getSelectedItems().isEmpty()) {
+                    doctors.removeAll(doctorsTable.getSelectionModel().getSelectedItems());
+                    doctorsTable.getSelectionModel().clearSelection();
+                } else
+                    AlertBox.alert("Warning", "No Doctor Selected, Please Select Doctor(s) to Delete!", "Got it");
+            });
+            bar.getChildren().addAll(button);
+            doctorsT.getChildren().addAll(DocLabel, doctorsTable, bar);
+            doctorsT.setStyle("-fx-background-color: #FFFFFF");
+            doctorsT.setAlignment(Pos.CENTER);
         }
         window.setScene(PatientsTable);
         window.show();
@@ -284,6 +295,8 @@ public class Main extends Application implements Style {
     public static void main(String[] args) {
         launch();
     }
+
+
     public void editPatient(ObservableList<Patient> patients, int op) {
         Stage window = new Stage();
         window.setTitle("Adding Patient");
@@ -470,34 +483,6 @@ public class Main extends Application implements Style {
             doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
             doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
             doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
-            doctors.add(new Doctor("Omar", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-            doctors.add(new Doctor("Salma", "Madinaty", "01062598421", "Psychiatric"));
-            doctors.add(new Doctor("Nada", "Madinaty", "01012198421", "Psychiatric"));
-            doctors.add(new Doctor("Helwa", "Madinaty", "01082198421", "Psychiatric"));
-            doctors.add(new Doctor("Nonn", "Madinaty", "01062197421", "Psychiatric"));
         }
         return doctors;
     }
@@ -507,10 +492,6 @@ public class Main extends Application implements Style {
             for (int i = 0; i < 6; i++) {
                 patients.add(new EmergencyPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
                 patients.add(new EmergencyPatient("Bima", "Tagamo3", "01046523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01056523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01066523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01086523658", "male", "ta3ban", "special way", "private", true, 23));
                 patients.add(new NormalPatient("Bima", "Tagamo3", "01096523658", "male", "ta3ban", "special way", "private", true, 23));
             }
         }
