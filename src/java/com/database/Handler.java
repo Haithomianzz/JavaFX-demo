@@ -157,4 +157,43 @@ public class Handler {
         return appointments;
     }
 
+    public static boolean verifyCredentials(String username, String password) {
+    DatabaseConnector.connect();
+    Connection connection = null;
+    try {
+        connection = DatabaseConnector.connection();
+
+        // SQL query to retrieve data
+        String sql = "SELECT password FROM userdata WHERE username = ?";
+
+        // Prepare statement and set parameters
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        // Check if the username exists and verify the password
+        if (resultSet.next()) {
+            String storedPassword = resultSet.getString("password");
+            if (storedPassword.equals(password)) {
+                return true;
+            }
+        }
+
+        // Close the ResultSet and PreparedStatement
+        resultSet.close();
+        preparedStatement.close();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            if (connection != null) {
+                connection.close(); // Close the connection
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    return false;
+}
 }
