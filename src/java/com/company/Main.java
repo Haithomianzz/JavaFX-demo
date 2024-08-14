@@ -8,9 +8,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+
+import java.util.Random;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -19,6 +24,13 @@ import java.util.Set;
 public class Main extends Application implements Style {
     Stage window;
     String UserType;
+    Button loginButton;
+    Label resultLabel;
+    TextField usernameField;
+    PasswordField passwordField;
+    String CORRECT_USERNAME = "admin";
+    String CORRECT_PASSWORD = "pass123";
+    static double ALERT_PROBABILITY = 0.8;
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
@@ -84,23 +96,22 @@ public class Main extends Application implements Style {
         }
         // Login Form Page
         {
-            String CORRECT_USERNAME = "admin";
-            String CORRECT_PASSWORD = "pass123";
+
             Label usernameLabel = new Label("Username:");
             usernameLabel.setStyle(H2);
             Label passwordLabel = new Label("Password:");
             passwordLabel.setStyle(H2);
-            TextField usernameField = new TextField();
+            usernameField = new TextField();
             usernameField.setStyle(H3);
             usernameField.setPrefSize(350, 200);
             usernameField.setPromptText("Username");
-            PasswordField passwordField = new PasswordField();
+            passwordField = new PasswordField();
             passwordField.setPrefSize(350, 200);
             passwordField.setPromptText("Password");
             passwordField.setStyle(H3);
-            Label resultLabel = new Label();
+            resultLabel = new Label();
             resultLabel.setMaxSize(400, 120);
-            Button loginButton = new Button("Login");
+            loginButton = new Button("Login");
             loginButton.setMaxSize(200, 120);
             Button backButton = BackButton();
             backButton.setOnAction(e -> window.setScene(LoginOptions));
@@ -133,17 +144,77 @@ public class Main extends Application implements Style {
             loginFPane.setStyle(BGColor);
             loginFPane.setBottom(backButton);
         }
-        // DashBoard
+        // Admin DashBoard
         {
             String[] labels = new String[]{"Physician Login", "Admin Login"};
+            {
+                VBox adminDashboard = new VBox(20);
+                adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
+                adminDashboard.setAlignment(Pos.CENTER);
+
+
+                Button doctorsButton = new Button("Doctors");
+                doctorsButton.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
+                doctorsButton.setStyle(Style.ButtonStyle);
+                doctorsButton.setOnAction(e -> window.setScene(DoctorsTable));
+
+                Button patientsButton = new Button("Patients");
+                patientsButton.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
+                patientsButton.setStyle(Style.ButtonStyle);
+                patientsButton.setOnAction(e -> window.setScene(PatientsTable));
+
+                Button appointmentsButton = new Button("Appointments");
+                appointmentsButton.setGraphic(new ImageView(new Image(Style.APPTS_ICON)));
+                appointmentsButton.setStyle(Style.ButtonStyle);
+                //appointmentsButton.setOnAction(e -> window.setScene(AppointmentsTable));
+
+                Button roomsButton = new Button("Rooms");
+                roomsButton.setGraphic(new ImageView(new Image(Style.ROOM_ICON)));
+                roomsButton.setStyle(Style.ButtonStyle);
+                //roomsButton.setOnAction(e -> window.setScene(RoomsTable));
+
+                Button logoutButton = new Button("Log Out");
+                logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
+                logoutButton.setStyle(Style.ButtonStyle);
+                logoutButton.setOnAction(e -> window.setScene(Menu));
+
+
+                GridPane adminGrid = new GridPane();
+                adminGrid.setHgap(20);
+                adminGrid.setVgap(20);
+                adminGrid.setAlignment(Pos.CENTER);
+                adminGrid.add(doctorsButton, 0, 0);
+                adminGrid.add(patientsButton, 1, 0);
+                adminGrid.add(appointmentsButton, 2, 0);
+                adminGrid.add(roomsButton, 0, 1);
+                adminGrid.add(logoutButton, 2, 1);
+
+                adminDashboard.getChildren().addAll(adminGrid);
+                Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
+
+
+                loginButton.setOnAction(e -> {
+                    String enteredUsername = usernameField.getText();
+                    String enteredPassword = passwordField.getText();
+                    if (enteredUsername.equals(CORRECT_USERNAME) && enteredPassword.equals(CORRECT_PASSWORD)) {
+                        resultLabel.setText("Successful Login!");
+                        resultLabel.setStyle(Success + H2);
+                        window.setScene(AdminDashboard);
+                    } else {
+                        resultLabel.setText("Incorrect Credentials!");
+                        resultLabel.setStyle(Warning + H2);
+                    }
+                });
+            }
         }
+
         // Patients Table
         {
             Label PatLabel = new Label("Patients Table");
             PatLabel.setStyle(TableLabel);
 
             ObservableList<Patient> patients = FXCollections.observableArrayList();
-            patients.addAll(getPatients());
+            //patients.addAll(getPatients());
             TableView<Patient> patientsTable = new TableView<>(patients);
             patientsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             patientsTable.setFixedCellSize(40);
@@ -278,11 +349,21 @@ public class Main extends Application implements Style {
         doctorsT.setStyle("-fx-background-color: #FFFFFF");
         doctorsT.setAlignment(Pos.CENTER);
         }
-        window.setScene(PatientsTable);
+        Random random = new Random();
+        if (random.nextDouble() < ALERT_PROBABILITY) {
+
+            AlertBox.alert("Warning", "Patient in room X needs help", "OK");
+        }
+
+        //window.setScene(PatientsTable);
+        window.setScene(Menu);
         window.show();
     }
+
+
+
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
     public void editPatient(ObservableList<Patient> patients, int op) {
         Stage window = new Stage();
@@ -463,7 +544,7 @@ public class Main extends Application implements Style {
         window.show();
     }
     public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
-    public Set<Patient> getPatients(){return Patient.loadToHashSet();}
+   // public Set<Patient> getPatients(){return Patient.loadToHashSet();}
     
     public Button BackButton(){
         Button backbutton = new Button("Back");
