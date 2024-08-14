@@ -19,6 +19,9 @@ import java.util.Set;
 public class Main extends Application implements Style {
     Stage window;
     String UserType;
+    public static ObservableList<Patient> patientsObservableList;
+    public static ObservableList<Doctor> doctorsObservableList;
+
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
@@ -142,7 +145,7 @@ public class Main extends Application implements Style {
             Label PatLabel = new Label("Patients Table");
             PatLabel.setStyle(TableLabel);
 
-            ObservableList<Patient> patients = FXCollections.observableArrayList();
+            patients = FXCollections.observableArrayList();
             patients.addAll(getPatients());
             TableView<Patient> patientsTable = new TableView<>(patients);
             patientsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -239,7 +242,7 @@ public class Main extends Application implements Style {
         departmentCol.setPrefWidth(350);
         departmentCol.setCellValueFactory(new PropertyValueFactory<>("specialty"));
 
-        ObservableList<Doctor> doctors = FXCollections.observableArrayList();
+        doctors = FXCollections.observableArrayList();
         doctors.addAll(getDoctors());
         TableView<Doctor> doctorsTable = new TableView<>(doctors);
         doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
@@ -464,7 +467,7 @@ public class Main extends Application implements Style {
     }
     public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
     public Set<Patient> getPatients(){return Patient.loadToHashSet();}
-    
+
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
