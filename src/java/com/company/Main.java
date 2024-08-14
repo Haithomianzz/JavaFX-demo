@@ -21,6 +21,9 @@ import static com.database.Handler.verifyCredentials;
 public class Main extends Application implements Style {
     Stage window;
     String UserType;
+    public static ObservableList<Patient> patientsObservableList;
+    public static ObservableList<Doctor> doctorsObservableList;
+
     public void start(Stage stage) throws IOException {
         window = stage;
         window.setTitle("Healthcare System v1.0");
@@ -153,7 +156,7 @@ public class Main extends Application implements Style {
             Label PatLabel = new Label("Patients Table");
             PatLabel.setStyle(TableLabel);
 
-            ObservableList<Patient> patients = FXCollections.observableArrayList();
+            patients = FXCollections.observableArrayList();
             patients.addAll(getPatients());
             TableView<Patient> patientsTable = new TableView<>(patients);
             patientsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -228,12 +231,53 @@ public class Main extends Application implements Style {
         }
         // Doctors Table
         {
-            Label DocLabel = new Label("Doctors Table");
-            DocLabel.setStyle(TableLabel);
-            TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
-            docCol.setPrefWidth(100);
-            docCol.setStyle(H3);
-            docCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+
+
+        Label DocLabel = new Label("Doctors Table");
+        DocLabel.setStyle(TableLabel);
+        TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
+        docCol.setPrefWidth(100);
+        docCol.setStyle(H3);
+        docCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+
+        TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
+        nameCol.setPrefWidth(500);
+        nameCol.setStyle(H3);
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<Doctor, String> phoneCol = new TableColumn<>("Phone Number");
+        phoneCol.setPrefWidth(250);
+        phoneCol.setStyle(H3);
+        phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
+
+        TableColumn<Doctor, String> departmentCol = new TableColumn<>("Department");
+        departmentCol.setStyle(H3);
+        departmentCol.setPrefWidth(350);
+        departmentCol.setCellValueFactory(new PropertyValueFactory<>("specialty"));
+
+        doctors = FXCollections.observableArrayList();
+        doctors.addAll(getDoctors());
+        TableView<Doctor> doctorsTable = new TableView<>(doctors);
+        doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
+        doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
+        doctorsTable.setPrefHeight(995);
+        doctorsTable.setFixedCellSize(40);
+        HBox bar = new HBox(42);
+        bar.setAlignment(Pos.CENTER);
+        String[] labels = new String[]{"Back", "Save", "Edit", "Add", "Delete"};
+        Button[] button = new Button[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            button[i] = new Button(labels[i]);
+            button[i].setPrefSize(210, 80);
+            button[i].setStyle(ButtonStyle);
+        }
+        button[0].setOnAction(e -> window.setScene(LoginForm));
+        button[2].setOnAction(e -> {
+            if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
+                editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
+            else
+                AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
 
             TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
             nameCol.setPrefWidth(500);
@@ -475,28 +519,10 @@ public class Main extends Application implements Style {
         window.setScene(new Scene(layout));
         window.show();
     }
-    public Set<Doctor> getSet(){return Doctor.loadToHashSet();}
-    public Set<Doctor> getDoctors() {
-        Set<Doctor> doctors = new HashSet<>();
-        {
-            doctors.add(new Doctor("Hassan", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-        }
-        return doctors;
-    }
-    public Set<Patient> getPatients(){
-        Set<Patient> patients = new HashSet<>();
-        {
-            for (int i = 0; i < 6; i++) {
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01046523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01096523658", "male", "ta3ban", "special way", "private", true, 23));
-            }
-        }
-        return patients;
-    }
+
+    public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
+    public Set<Patient> getPatients(){return Patient.loadToHashSet();}
+
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
