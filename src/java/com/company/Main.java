@@ -35,8 +35,8 @@ public class Main extends Application implements Style {
     String CORRECT_PASSWORD = "pass123";
     static double ALERT_PROBABILITY = 0.8;
 
-    public static ObservableList<Patient> patientsObservableList;
-    public static ObservableList<Doctor> doctorsObservableList;
+    public static ObservableList<Patient> patients;
+    public static ObservableList<Doctor> doctors;
 
 
     public void start(Stage stage) throws IOException {
@@ -165,8 +165,8 @@ public class Main extends Application implements Style {
         // Admin DashBoard
         {
             String[] labels = new String[]{"Physician Login", "Admin Login"};
-                adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
-                adminDashboard.setAlignment(Pos.CENTER);
+            adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
+            adminDashboard.setAlignment(Pos.CENTER);
 
 
                 Button doctorsButton = new Button("Doctors");
@@ -303,53 +303,13 @@ public class Main extends Application implements Style {
         }
         // Doctors Table
         {
-
-
         Label DocLabel = new Label("Doctors Table");
         DocLabel.setStyle(TableLabel);
+
         TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
         docCol.setPrefWidth(100);
         docCol.setStyle(H3);
         docCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
-
-        TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
-        nameCol.setPrefWidth(500);
-        nameCol.setStyle(H3);
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        TableColumn<Doctor, String> phoneCol = new TableColumn<>("Phone Number");
-        phoneCol.setPrefWidth(250);
-        phoneCol.setStyle(H3);
-        phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-
-        TableColumn<Doctor, String> departmentCol = new TableColumn<>("Department");
-        departmentCol.setStyle(H3);
-        departmentCol.setPrefWidth(350);
-        departmentCol.setCellValueFactory(new PropertyValueFactory<>("specialty"));
-
-        doctors = FXCollections.observableArrayList();
-        doctors.addAll(getDoctors());
-        TableView<Doctor> doctorsTable = new TableView<>(doctors);
-        doctorsTable.getColumns().addAll(docCol, phoneCol, nameCol, departmentCol);
-        doctorsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        doctorsTable.setMaxWidth(docCol.getWidth() + phoneCol.getWidth() + nameCol.getWidth() + departmentCol.getWidth() + 15);
-        doctorsTable.setPrefHeight(695);
-        doctorsTable.setFixedCellSize(40);
-        HBox bar = new HBox(42);
-        bar.setAlignment(Pos.CENTER);
-        String[] labels = new String[]{"Back", "Save", "Edit", "Add", "Delete"};
-        Button[] button = new Button[labels.length];
-        for (int i = 0; i < labels.length; i++) {
-            button[i] = new Button(labels[i]);
-            button[i].setPrefSize(210, 80);
-            button[i].setStyle(ButtonStyle);
-        }
-        button[0].setOnAction(e -> window.setScene(AdminDashboard));
-        button[2].setOnAction(e -> {
-            if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
-                editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
-            else
-                AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
 
             TableColumn<Doctor, String> nameCol = new TableColumn<>("Full Name");
             nameCol.setPrefWidth(500);
@@ -391,7 +351,6 @@ public class Main extends Application implements Style {
                     AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
 
             });
-
             button[3].setOnAction(e -> editDoctor(doctors, 0));
             button[4].setOnAction(e -> {
                 if (!doctorsTable.getSelectionModel().getSelectedItems().isEmpty()) {
@@ -405,6 +364,7 @@ public class Main extends Application implements Style {
             doctorsT.setStyle("-fx-background-color: #FFFFFF");
             doctorsT.setAlignment(Pos.CENTER);
         }
+
         window.setScene(PatientsTable);
 //        window.setScene(Menu);
         window.show();
@@ -413,6 +373,7 @@ public class Main extends Application implements Style {
 
             AlertBox.alert("Warning", "Patient in room X needs help", "OK");
         }
+
     }
 
 
@@ -455,7 +416,7 @@ public class Main extends Application implements Style {
         TextField[] fields = new TextField[forms.length];
         for (int i = 0; i < forms.length; i++) {
             labels[i] = new Label(forms[i] + ":");
-            labels[i].setStyle(H2);
+            labels[i].setStyle(H1);
             fields[i] = new TextField();
             fields[i].setPromptText(forms[i]);
             fields[i].setStyle(H3);

@@ -20,7 +20,7 @@ public class Appointment {
     private Date date;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
-    private static Set<Appointment> appointments = new HashSet<>();
+    private static Set<Appointment> appointments;
 
     static {
         appointments = loadToHashSet(); // Load from database after initialization
@@ -28,7 +28,7 @@ public class Appointment {
     }
 
     public Appointment(int patientId, int doctorId) {
-        this.doctorId = patientId;
+        this.patientId = patientId;
         this.doctorId = doctorId;
         add(this);
 

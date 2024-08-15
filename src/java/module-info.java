@@ -5,10 +5,7 @@ module com.company {
     requires java.sql;
     requires mysql.connector.j;
     requires java.naming;
-
-
     opens com.company to javafx.fxml;
     opens com.functions to javafx.base;
-
     exports com.company;
 }

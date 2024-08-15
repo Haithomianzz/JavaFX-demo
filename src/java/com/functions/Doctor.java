@@ -1,23 +1,23 @@
 package com.functions;
 
+import com.company.Main;
 import com.database.DatabaseConnector;
 import com.database.Handler;
+import javafx.collections.ObservableList;
 
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Doctor extends Person{
 
     private String specialty;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
-    private static HashSet<Doctor> doctors = new HashSet<>(loadToHashSet(Main.doctorsObservableList));
+    private static HashSet<Doctor> doctors;
 
     static {
     doctors = loadToHashSet(); // Load from database after initialization
+    doctors.addAll(Main.doctors);
         Map<Integer, Doctor> doctorHashMap = Handler.loadDoctors();
 }
 
@@ -139,11 +139,11 @@ public class Doctor extends Person{
         return lastId;
     }
 
-    private static HashSet<Doctor> loadToHashSet(){
+    public static HashSet<Doctor> loadToHashSet(){
         return new HashSet<>(Handler.loadDoctors().values());
     }
 
-    private static HashSet<Doctor> loadToHashSet(List<Doctor> doctorList) {
+    private static HashSet<Doctor> loadToHashSet(ObservableList<Doctor> doctorList) {
         return new HashSet<>(doctorList);
     }
 

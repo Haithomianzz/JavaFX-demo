@@ -2,7 +2,7 @@ package com.functions;
 
 import com.database.DatabaseConnector;
 import com.database.Handler;
-
+import com.company.*;
 import java.sql.*;
 import java.util.*;
 
@@ -16,11 +16,12 @@ public class Patient extends Person {
     private static int lastId = loadLastId();
     private final int ID = lastId++;
 
-    private static Set<Patient> patients = new HashSet<>(loadToHashSet(Main.patientsObservableList));
+    private static Set<Patient> patients;
 
 
     static {
         patients = loadToHashSet(); // Load from database after initialization
+        patients.addAll(Main.patients);
         Map<Integer, Patient> patientMap = Handler.loadPatients();
     }
 
