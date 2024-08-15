@@ -15,10 +15,10 @@ public class Doctor extends Person{
     private static int lastId = loadLastId();
     private final int ID = lastId++;
     private static HashSet<Doctor> doctors = new HashSet<>();
-
+    private static Map<Integer, Doctor> doctorHashMap;
     static {
     doctors = loadToHashSet(); // Load from database after initialization
-        Map<Integer, Doctor> doctorHashMap = Handler.loadDoctors();
+         doctorHashMap = Handler.loadDoctors();
 }
 
     public Doctor(String name, String address, String phoneNumber, String specialty) {
@@ -50,20 +50,17 @@ public class Doctor extends Person{
         doctors.add(doctor);
     }
 
-    // Method to edit doctor info
-//    public static void editDoctor(int id, String name, String address, String phoneNumber, String gender, String specialty) {
-//        for (Doctor doctor : doctors) {
-//            if (doctor.id == id) {
-//                doctor.name = name;
-//                doctor.address = address;
-//                doctor.phoneNumber = phoneNumber;
-//                doctor.gender = gender;
-//                doctor.specialty = specialty;
-//                return;
-//            }
-//        }
-//    }
+    public void EditDoctor(String newName, String newAddress, String newPhoneNumber, String newSpecialty) {
+        // Retrieve the doctor object from the map using the provided doctorId
 
+
+            // Update fields only if new values are provided
+            this.name = (newName != null) ? newName : this.name;
+            this.address = (newAddress != null) ? newAddress : this.address;
+            this.phoneNumber = (newPhoneNumber != null) ? newPhoneNumber : this.phoneNumber;
+            this.specialty = (newSpecialty != null) ? newSpecialty : this.specialty;
+
+    }
 
     public static boolean save() {
         DatabaseConnector.connect();
@@ -98,7 +95,7 @@ public class Doctor extends Person{
 
 
 
-    public boolean delete(Doctor doctor) {
+    public static boolean delete(Doctor doctor) {
         DatabaseConnector.connect();
         String query = "SELECT * FROM doctors";
         String qry = "DELETE FROM doctors WHERE idDoctors= '%s'".formatted(doctor.getID());

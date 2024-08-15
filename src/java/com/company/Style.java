@@ -12,4 +12,10 @@ public interface Style {
     String BGColor = "-fx-background-color: #baf5ee;";
     int bwidth = 280;
     int blength= 140;
+
+    String DOCTORS_ICON = "file:src/java/com/company/resources/Untitled216_20240814165729.png";
+    String PATIENTS_ICON = "file:src/java/com/company/resources/Untitled216_20240814165722.png";
+    String LOGOUT_ICON = "file:src/java/com/company/resources/Untitled216_20240814165635.png";
+    String APPTS_ICON ="file:src/java/com/company/resources/Untitled216_20240814165641.png";
+    String ROOM_ICON ="file:src/java/com/company/resources/Untitled216_20240814165715.png";
 }

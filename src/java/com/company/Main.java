@@ -8,6 +8,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -29,12 +31,14 @@ public class Main extends Application implements Style {
         BorderPane menuPane = new BorderPane();
         BorderPane loginOPane = new BorderPane();
         BorderPane loginFPane = new BorderPane();
+        VBox adminDashboard = new VBox(20);
         VBox doctorsT = new VBox(10);
         VBox patientsT = new VBox(10);
         // Scenes
         Scene Menu = new Scene(menuPane, Resolution[0], Resolution[1]);
         Scene LoginOptions = new Scene(loginOPane, Resolution[0], Resolution[1]);
         Scene LoginForm = new Scene(loginFPane, Resolution[0], Resolution[1]);
+        Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT);
         Scene PatientsTable = new Scene(patientsT);
 
@@ -122,6 +126,7 @@ public class Main extends Application implements Style {
                 if (verifyCredentials(enteredUsername, enteredPassword)) {
                     resultLabel.setText("Successful Login!");
                     resultLabel.setStyle(Success + H2);
+                    window.setScene(AdminDashboard);
                 } else {
                     resultLabel.setText("Incorrect Credentials!");
                     resultLabel.setStyle(Warning + H2);
@@ -145,8 +150,53 @@ public class Main extends Application implements Style {
             loginFPane.setBottom(backButton);
         }
         // DashBoard
+        // Admin DashBoard
         {
-            String[] labels = new String[]{"Physician Login", "Admin Login"};
+            {
+
+                adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
+                adminDashboard.setAlignment(Pos.CENTER);
+
+
+                Button doctorsButton = new Button("Doctors");
+                doctorsButton.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
+                doctorsButton.setStyle(Style.ButtonStyle);
+                doctorsButton.setOnAction(e -> window.setScene(DoctorsTable));
+
+                Button patientsButton = new Button("Patients");
+                patientsButton.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
+                patientsButton.setStyle(Style.ButtonStyle);
+                patientsButton.setOnAction(e -> window.setScene(PatientsTable));
+
+                Button appointmentsButton = new Button("Appointments");
+                appointmentsButton.setGraphic(new ImageView(new Image(Style.APPTS_ICON)));
+                appointmentsButton.setStyle(Style.ButtonStyle);
+                //appointmentsButton.setOnAction(e -> window.setScene(AppointmentsTable));
+
+                Button roomsButton = new Button("Rooms");
+                roomsButton.setGraphic(new ImageView(new Image(Style.ROOM_ICON)));
+                roomsButton.setStyle(Style.ButtonStyle);
+                //roomsButton.setOnAction(e -> window.setScene(RoomsTable));
+
+                Button logoutButton = new Button("Log Out");
+                logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
+                logoutButton.setStyle(Style.ButtonStyle);
+                logoutButton.setOnAction(e -> window.setScene(Menu));
+
+
+                GridPane adminGrid = new GridPane();
+                adminGrid.setHgap(20);
+                adminGrid.setVgap(20);
+                adminGrid.setAlignment(Pos.CENTER);
+                adminGrid.add(doctorsButton, 0, 0);
+                adminGrid.add(patientsButton, 1, 0);
+                adminGrid.add(appointmentsButton, 2, 0);
+                adminGrid.add(roomsButton, 0, 1);
+                adminGrid.add(logoutButton, 2, 1);
+
+                adminDashboard.getChildren().addAll(adminGrid);
+
+            }
         }
         // Patients Table
         {
@@ -204,7 +254,7 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(LoginForm));
+            button[0].setOnAction(e -> window.setScene(AdminDashboard));
             button[2].setOnAction(e -> {
                 if (patientsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editPatient(patientsTable.getSelectionModel().getSelectedItems(), 1);
@@ -267,7 +317,7 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(LoginForm));
+            button[0].setOnAction(e -> window.setScene(AdminDashboard));
             button[2].setOnAction(e -> {
                 if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
@@ -289,7 +339,7 @@ public class Main extends Application implements Style {
             doctorsT.setStyle("-fx-background-color: #FFFFFF");
             doctorsT.setAlignment(Pos.CENTER);
         }
-        window.setScene(PatientsTable);
+        window.setScene(Menu);
         window.show();
     }
     public static void main(String[] args) {
@@ -304,7 +354,6 @@ public class Main extends Application implements Style {
         window.initModality(Modality.APPLICATION_MODAL);
 
         Patient currentPatient;
-        Patient newPatient;
 
         Label label = new Label();
         label.setStyle(H1);
@@ -325,7 +374,7 @@ public class Main extends Application implements Style {
         else {
             currentPatient = patients.getFirst();
         }
-        String[] forms = new String[]{"Full Name","Home Address","Phone Number","Gender","Room"};
+        String[] forms = new String[]{"Full Name","Home Address","Phone Number","Gender","Symptoms","Payment Method","Room"};
         Label[] labels = new Label[forms.length];
         TextField[] fields = new TextField[forms.length];
         for (int i = 0; i < forms.length; i++) {
@@ -338,28 +387,32 @@ public class Main extends Application implements Style {
             grid.add(labels[i],0,i);
             grid.add(fields[i],1,i);
         }
-
+        Label emergency = new Label("Emergency");
+        emergency.setStyle(H2);
+        CheckBox emergencyCheck = new CheckBox();
+        emergencyCheck.setSelected(false);
+        grid.add(emergency,0,7);
+        grid.add(emergencyCheck,1,7);
         fields[2].textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*"))
                 fields[2].setText(newValue.replaceAll("\\D", ""));
         });
         fields[4].textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*"))
-                fields[4].setText(newValue.replaceAll("\\D", ""));
+                fields[6].setText(newValue.replaceAll("\\D", ""));
         });
 
         if (op == 1){
-            newPatient = null;
             window.setTitle("Edit Patient");
             label.setText("Patient #"+ currentPatient.getID());
             fields[0].setText(currentPatient.getName());
             fields[1].setText(currentPatient.getAddress());
             fields[2].setText(currentPatient.getPhoneNumber());
             fields[3].setText(currentPatient.getGender());
-            fields[4].setText(String.valueOf(currentPatient.getRoomNumber()));
+            fields[4].setText(currentPatient.getSymptoms());
+            fields[5].setText(currentPatient.getPaymentMethod());
         }
-        else
-             newPatient = new Patient();
+
         Button confirmButton = new Button("Confirm");
         confirmButton.setStyle(ButtonStyle);
         confirmButton.setOnAction(e-> {
@@ -368,19 +421,20 @@ public class Main extends Application implements Style {
             }
             else {
                 if (op == 0) {
-                    newPatient.setName(fields[0].getText());
-                    newPatient.setAddress(fields[1].getText());
-                    newPatient.setPhoneNumber(fields[2].getText());
-                    newPatient.setGender(fields[3].getText());
-                    newPatient.setRoomNumber(Integer.parseInt(fields[4].getText()));
-                    patients.add(newPatient);
+                    if (emergencyCheck.isSelected()){
+                        Patient newPatient = new  EmergencyPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
+                                fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
+                        patients.add(newPatient);
+                    }
+                    else{
+                        Patient newPatient = new NormalPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
+                                fields[3].getText(),fields[4].getText(),fields[5].getText(),emergencyCheck.isSelected());
+                        patients.add(newPatient);
+                    }
                 }
                 else {
-                    currentPatient.setName(fields[0].getText());
-                    currentPatient.setAddress(fields[1].getText());
-                    currentPatient.setPhoneNumber(fields[2].getText());
-                    currentPatient.setGender(fields[3].getText());
-                    currentPatient.setRoomNumber(Integer.parseInt(fields[4].getText()));
+                    currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
+                            fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
                 }
                 window.close();
             }
@@ -460,10 +514,8 @@ public class Main extends Application implements Style {
                     doctors.add(newDoctor);
                 }
                 else {
-                    currentDoctor.setName(fields[0].getText());
-                    currentDoctor.setAddress(fields[1].getText());
-                    currentDoctor.setPhoneNumber(fields[2].getText());
-                    currentDoctor.setSpecialty(fields[3].getText());
+                   currentDoctor.EditDoctor(fields[0].getText(),fields[1].getText(),fields[2].getText(),fields[3].getText());
+                   Doctor.delete(currentDoctor);
                 }
                 window.close();
             }
@@ -475,28 +527,8 @@ public class Main extends Application implements Style {
         window.setScene(new Scene(layout));
         window.show();
     }
-    public Set<Doctor> getSet(){return Doctor.loadToHashSet();}
-    public Set<Doctor> getDoctors() {
-        Set<Doctor> doctors = new HashSet<>();
-        {
-            doctors.add(new Doctor("Hassan", "Madinaty", "01062198421", "Psychiatric"));
-            doctors.add(new Doctor("Ahmed", "Madinaty", "01065198421", "Psychiatric"));
-            doctors.add(new Doctor("Bima", "Madinaty", "01062178421", "Psychiatric"));
-            doctors.add(new Doctor("Marwan", "Madinaty", "01062192421", "Psychiatric"));
-        }
-        return doctors;
-    }
-    public Set<Patient> getPatients(){
-        Set<Patient> patients = new HashSet<>();
-        {
-            for (int i = 0; i < 6; i++) {
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01076523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new EmergencyPatient("Bima", "Tagamo3", "01046523658", "male", "ta3ban", "special way", "private", true, 23));
-                patients.add(new NormalPatient("Bima", "Tagamo3", "01096523658", "male", "ta3ban", "special way", "private", true, 23));
-            }
-        }
-        return patients;
-    }
+    public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
+    public Set<Patient> getPatients(){return Patient.loadToHashSet();}
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);

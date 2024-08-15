@@ -1,8 +1,6 @@
 package com.database;
 
-import com.functions.Appointment;
-import com.functions.Doctor;
-import com.functions.Patient;
+import com.functions.*;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -78,17 +76,28 @@ public class Handler {
             // Process the result set and populate the HashMap
             while (resultSet.next()) {
                 int id = resultSet.getInt("idpatients");
-                Patient patient = new Patient(
-                        resultSet.getString("name"),
-                        resultSet.getString("address"),
-                        resultSet.getString("phoneNumber"),
-                        resultSet.getString("gender"),
-                        resultSet.getString("symptoms"),
-                        resultSet.getString("paymentMethod"),
-                        resultSet.getString("diagno"),
-                        resultSet.getBoolean("emergency"),
-                        resultSet.getInt("roomNumber"));
-
+                Patient patient;
+                if (resultSet.getBoolean("emergency")){
+                     patient = new EmergencyPatient(
+                            resultSet.getString("name"),
+                            resultSet.getString("address"),
+                            resultSet.getString("phoneNumber"),
+                            resultSet.getString("gender"),
+                            resultSet.getString("symptoms"),
+                            resultSet.getString("paymentMethod"),
+                            resultSet.getInt("roomNumber"),
+                            resultSet.getBoolean("emergency"));
+                }
+                else {
+                    patient = new NormalPatient(
+                            resultSet.getString("name"),
+                            resultSet.getString("address"),
+                            resultSet.getString("phoneNumber"),
+                            resultSet.getString("gender"),
+                            resultSet.getString("symptoms"),
+                            resultSet.getString("paymentMethod"),
+                            resultSet.getBoolean("emergency"));
+                }
                 patientHashMap.put(id, patient);
             }
 

@@ -12,31 +12,29 @@ public class Patient extends Person {
     private String paymentMethod;
     private String diagnosis;
     private boolean emergency;
-    private int roomNumber;
+    private String roomNumber = "N/A";
+    private String doctorInCharge;
     private static int lastId = loadLastId();
-    private final int ID = lastId++;
-    private static Set<Patient> patients = new HashSet<>();
+    private final int ID;
 
+    private static Set<Patient> patients = new HashSet<>();
+    private static Map<Integer, Patient> patientsMap= Handler.loadPatients();
     static {
         patients = loadToHashSet(); // Load from database after initialization
-        Map<Integer, Patient> patientMap = Handler.loadPatients();
+//        Map<Integer, Patient> patientsMap = Handler.loadPatients();
     }
 
 
-    public Patient(String name, String address, String phoneNumber, String gender, String symptoms, String paymentMethod, String diagnosis, boolean emergency, int roomNumber) {
+    public Patient(String name, String address, String phoneNumber, String gender,
+                   String symptoms, String paymentMethod, boolean emergency) {
         super(name, address, phoneNumber);
         this.gender = gender;
         this.symptoms = symptoms;
         this.paymentMethod = paymentMethod;
-        this.diagnosis = diagnosis;
         this.emergency = emergency;
-        this.roomNumber = roomNumber;
+        ID = lastId++;
         addPatient(this);
     }
-
-    public Patient() {
-    }
-
     private void addPatient(Patient patient) {
         patients.add(patient);
     }
@@ -84,20 +82,23 @@ public class Patient extends Person {
     public int getID() {
         return ID;
     }
-
-    public int getRoomNumber() {
-        return roomNumber;
+    protected void setRoomNumber(int roomNumber) {
+        this.roomNumber = String.valueOf(roomNumber);
     }
 
-    public void setRoomNumber(int roomNumber) {
-        this.roomNumber = roomNumber;
+
+    public void setDoctorInCharge(String doctorInCharge) {
+        this.doctorInCharge = doctorInCharge;
     }
 
+    public String getDoctorInCharge(){
+        return doctorInCharge;
+    }
 
     public static boolean save() {
         DatabaseConnector.connect();
         String checkQuery = "SELECT COUNT(*) FROM patients WHERE phoneNumber = ?";
-        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagno, emergency, roomNumber)"
+        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagnosis, emergency)"
                 + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (var connection = DatabaseConnector.connection();
@@ -123,7 +124,7 @@ public class Patient extends Person {
                 preparedStmt.setString(7, patient.getPaymentMethod());
                 preparedStmt.setString(8, patient.getDiagnosis());
                 preparedStmt.setBoolean(9, patient.isEmergency());
-                preparedStmt.setInt(10, patient.getRoomNumber());
+                preparedStmt.setString(11, patient.getDoctorInCharge());
                 preparedStmt.execute();
             }
         } catch (SQLException e) {
@@ -132,6 +133,24 @@ public class Patient extends Person {
         return true;
     }
 
+    public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
+                            String newSymptoms, String newPaymentMethod,Integer newRoomNumber, Boolean newEmergency ) {
+        // Retrieve the patient object from the map
+
+
+            // Update fields only if new values are provided
+            this.name = (newName != null) ? newName : this.name;
+            this.address = (newAddress != null) ? newAddress : this.address;
+            this.phoneNumber = (newPhoneNumber != null) ? newPhoneNumber : this.phoneNumber;
+            this.gender = (newGender != null) ? newGender : this.gender;
+            this.symptoms = (newSymptoms != null) ? newSymptoms : this.symptoms;
+            this.paymentMethod = (newPaymentMethod != null) ? newPaymentMethod : this.paymentMethod;
+            this.emergency = (newEmergency != null) ? newEmergency : this.emergency;
+            this.roomNumber = (newEmergency) ? String.valueOf(newRoomNumber) : this.roomNumber;
+
+//            this.doctorInCharge = (newDoctorInCharge != null) ? newDoctorInCharge : this.doctorInCharge;
+
+    }
 
     public boolean delete(Patient patient) {
         DatabaseConnector.connect();
@@ -175,10 +194,20 @@ public class Patient extends Person {
         return lastId;
     }
 
-    private static HashSet<Patient> loadToHashSet(){ return new HashSet<>(Handler.loadPatients().values()); }
+    public static HashSet<Patient> loadToHashSet(){
+        HashSet<Patient> patientsCopy = new HashSet<>();
+        for (Patient i : Handler.loadPatients().values()) {
+            patientsCopy.add(i);
+        }
+        return patientsCopy;
+    }
 
     @Override
     public String toString() {
-        return "Patient{[%d] %s %s %s %s %s %s %s %b %d}".formatted(getID(), name, address, phoneNumber, gender, symptoms, paymentMethod, diagnosis, emergency, roomNumber);
+        return "Patient{[%d] %s %s %s %s %s %s %s %b %d}".formatted(getID(), name, address, phoneNumber, gender, symptoms, paymentMethod, diagnosis, emergency);
+    }
+
+    public String getRoomNumber() {
+        return roomNumber;
     }
 }

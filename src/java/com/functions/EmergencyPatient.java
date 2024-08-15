@@ -1,26 +1,19 @@
 package com.functions;
 
 public class EmergencyPatient extends Patient {
-    private int roomNumber;
     // private Doctor[] doctorInCharge;
     
     public EmergencyPatient(String name, String address, String phoneNumber, String gender,
-     String symptoms,String paymentMethod, String diagnosis,boolean emergency, int roomNumber) {
-        super(name, address, phoneNumber, gender, symptoms, paymentMethod, diagnosis, emergency, roomNumber);
+     String symptoms,String paymentMethod,int roomNumber,boolean emergency ) {
+        super(name, address, phoneNumber, gender, symptoms, paymentMethod, emergency);
         setEmergency(true);
-        this.roomNumber = roomNumber;
+        setRoomNumber(roomNumber); ;
         // this.doctorInCharge = new Doctor[0];
     }
 
 
 
-    public int getRoomNumber(){
-        return roomNumber;
-    }
 
-    public void setRoomNumber(int roomNumber) {
-        this.roomNumber = roomNumber;
-    }
 
     
     // public boolean editDoctor(Doctor doctor) {
