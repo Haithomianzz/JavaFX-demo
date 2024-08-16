@@ -77,7 +77,7 @@ public class Handler {
             while (resultSet.next()) {
                 int id = resultSet.getInt("idpatients");
                 Patient patient;
-                if (resultSet.getBoolean("emergency")){
+                if (resultSet.getInt("emergency") == 1){
                      patient = new EmergencyPatient(
                             resultSet.getString("name"),
                             resultSet.getString("address"),
@@ -87,6 +87,8 @@ public class Handler {
                             resultSet.getString("paymentMethod"),
                             resultSet.getInt("roomNumber"),
                             resultSet.getBoolean("emergency"));
+                    patient.setDiagnosis(resultSet.getString("diagno"));
+                    patient.setDoctorInCharge(resultSet.getInt("doctorid"));
                 }
                 else {
                     patient = new NormalPatient(
@@ -97,6 +99,8 @@ public class Handler {
                             resultSet.getString("symptoms"),
                             resultSet.getString("paymentMethod"),
                             resultSet.getBoolean("emergency"));
+                    patient.setDiagnosis(resultSet.getString("diagno"));
+                    patient.setDoctorInCharge(resultSet.getInt("doctorid"));
                 }
                 patientHashMap.put(id, patient);
             }

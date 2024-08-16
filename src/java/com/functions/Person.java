@@ -1,6 +1,6 @@
 package com.functions;
 
-public class Person {
+public abstract class Person {
      protected String name;
      protected String address;
      protected String phoneNumber;

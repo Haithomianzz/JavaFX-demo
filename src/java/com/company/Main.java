@@ -14,12 +14,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-
 import static com.database.Handler.verifyCredentials;
+import static com.functions.Patient.save;
+import static com.functions.Patient.updateSet;
 
 public class Main extends Application implements Style {
     Stage window;
@@ -93,8 +93,6 @@ public class Main extends Application implements Style {
         }
         // Login Form Page
         {
-            String CORRECT_USERNAME = "admin";
-            String CORRECT_PASSWORD = "pass123";
             Label usernameLabel = new Label("Username:");
             usernameLabel.setStyle(H2);
             Label passwordLabel = new Label("Password:");
@@ -154,7 +152,6 @@ public class Main extends Application implements Style {
         }
         // Admin DashBoard
         {
-
                 adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
                 adminDashboard.setAlignment(Pos.CENTER);
 
@@ -327,6 +324,12 @@ public class Main extends Application implements Style {
                 button[i].setStyle(ButtonStyle);
             }
             button[0].setOnAction(e -> window.setScene(AdminDashboard));
+            button[1].setOnAction(e -> {
+                if (savePatients(patients))
+                    AlertBox.alert("Save Successful","Successfully saved Patient Information to server...","Got it");
+                else
+                    AlertBox.alert("Save Failed","Save Failed, Something went wrong","Got it");
+            });
             button[2].setOnAction(e -> {
                 if (patientsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editPatient(patientsTable.getSelectionModel().getSelectedItems(), 1);
@@ -390,6 +393,12 @@ public class Main extends Application implements Style {
                 button[i].setStyle(ButtonStyle);
             }
             button[0].setOnAction(e -> window.setScene(AdminDashboard));
+            button[1].setOnAction(e -> {
+                if(saveDoctors(doctors))
+                    AlertBox.alert("Save Successful","Successfully saved Doctor Information to server...","Got it");
+                else
+                    AlertBox.alert("Save Failed","Save Failed, Something went wrong","Got it");
+            });
             button[2].setOnAction(e -> {
                 if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
@@ -417,16 +426,12 @@ public class Main extends Application implements Style {
     public static void main(String[] args) {
         launch();
     }
-
-
     public void editPatient(ObservableList<Patient> patients, int op) {
         Stage window = new Stage();
         window.setTitle("Adding Patient");
         window.setResizable(false);
         window.initModality(Modality.APPLICATION_MODAL);
-
-        Patient currentPatient;
-
+        final Patient currentPatient;
         Label label = new Label();
         label.setStyle(H1);
         label.setAlignment(Pos.CENTER);
@@ -483,6 +488,10 @@ public class Main extends Application implements Style {
             fields[3].setText(currentPatient.getGender());
             fields[4].setText(currentPatient.getSymptoms());
             fields[5].setText(currentPatient.getPaymentMethod());
+            if(currentPatient.isEmergency()){
+                fields[6].setText(currentPatient.getRoomNumber());
+                emergencyCheck.setSelected(true);
+            }
         }
 
         Button confirmButton = new Button("Confirm");
@@ -505,8 +514,7 @@ public class Main extends Application implements Style {
                     }
                 }
                 else {
-                    currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
-                            fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
+                    currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(), fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
                 }
                 window.close();
             }
@@ -587,7 +595,6 @@ public class Main extends Application implements Style {
                 }
                 else {
                    currentDoctor.EditDoctor(fields[0].getText(),fields[1].getText(),fields[2].getText(),fields[3].getText());
-                   Doctor.delete(currentDoctor);
                 }
                 window.close();
             }
@@ -601,6 +608,29 @@ public class Main extends Application implements Style {
     }
     public Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
     public Set<Patient> getPatients(){return Patient.loadToHashSet();}
+    public Boolean savePatients(ObservableList<Patient> patients){
+        Patient.updateSet(patients);
+        if (Patient.save()){
+            System.out.println("Save Successful");
+            return true;
+        }
+        else{
+            System.out.println("Save Failed");
+            return false;
+        }
+    }
+    public Boolean saveDoctors(ObservableList<Doctor> doctors){
+        Doctor.updateSet(doctors);
+        if (Doctor.save()){
+            System.out.println("Save Successful");
+            return true;
+        }
+        else {
+            System.out.println("Save Failed");
+            return false;
+        }
+    }
+
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
@@ -608,9 +638,10 @@ public class Main extends Application implements Style {
         return backbutton;
     }
     public boolean checkEmptyForm(TextField[] fields) {
-        for (TextField field : fields)
-            if (field.getText().isEmpty())
+        for (int i = 0; i < fields.length - 1; i++) {
+            if (fields[i].getText().isEmpty())
                 return true;
+        }
         return false;
     }
     public String getUserType() {return UserType;}
