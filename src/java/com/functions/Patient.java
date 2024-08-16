@@ -195,11 +195,7 @@ public class Patient extends Person {
     }
 
     public static HashSet<Patient> loadToHashSet(){
-        HashSet<Patient> patientsCopy = new HashSet<>();
-        for (Patient i : Handler.loadPatients().values()) {
-            patientsCopy.add(i);
-        }
-        return patientsCopy;
+        return new HashSet<>(Handler.loadPatients().values());
     }
 
     @Override
