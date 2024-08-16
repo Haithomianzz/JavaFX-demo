@@ -3,6 +3,7 @@ import com.functions.*;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -31,7 +32,8 @@ public class Main extends Application implements Style {
         BorderPane menuPane = new BorderPane();
         BorderPane loginOPane = new BorderPane();
         BorderPane loginFPane = new BorderPane();
-        VBox adminDashboard = new VBox(20);
+        VBox adminDashboard = new VBox();
+        VBox doctorDashboard = new VBox(20);
         VBox doctorsT = new VBox(10);
         VBox patientsT = new VBox(10);
         // Scenes
@@ -39,6 +41,7 @@ public class Main extends Application implements Style {
         Scene LoginOptions = new Scene(loginOPane, Resolution[0], Resolution[1]);
         Scene LoginForm = new Scene(loginFPane, Resolution[0], Resolution[1]);
         Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
+        Scene DoctorDashboard = new Scene(doctorDashboard, Resolution[0],Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT);
         Scene PatientsTable = new Scene(patientsT);
 
@@ -149,37 +152,44 @@ public class Main extends Application implements Style {
             loginFPane.setStyle(BGColor);
             loginFPane.setBottom(backButton);
         }
-        // DashBoard
         // Admin DashBoard
         {
-            {
 
                 adminDashboard.setStyle("-fx-background-color: #f0f0f0;");
                 adminDashboard.setAlignment(Pos.CENTER);
 
-
-                Button doctorsButton = new Button("Doctors");
-                doctorsButton.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
+                Label doctorLabel = new Label("Doctors");
+                GridPane.setHalignment(doctorLabel, HPos.CENTER);
+                Button doctorsButton = new Button();
+                doctorsButton.setGraphic(new ImageView(new Image(DOCTORS_ICON)));
                 doctorsButton.setStyle(Style.ButtonStyle);
                 doctorsButton.setOnAction(e -> window.setScene(DoctorsTable));
 
-                Button patientsButton = new Button("Patients");
-                patientsButton.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
+                Label patientLabel = new Label("Patients");
+                GridPane.setHalignment(patientLabel, HPos.CENTER);
+                Button patientsButton = new Button();
+                patientsButton.setGraphic(new ImageView(new Image(PATIENTS_ICON)));
                 patientsButton.setStyle(Style.ButtonStyle);
                 patientsButton.setOnAction(e -> window.setScene(PatientsTable));
 
-                Button appointmentsButton = new Button("Appointments");
-                appointmentsButton.setGraphic(new ImageView(new Image(Style.APPTS_ICON)));
+                Label appointmentLabel = new Label("Appointments");
+                GridPane.setHalignment(appointmentLabel, HPos.CENTER);
+                Button appointmentsButton = new Button();
+                appointmentsButton.setGraphic(new ImageView(new Image(APPTS_ICON)));
                 appointmentsButton.setStyle(Style.ButtonStyle);
                 //appointmentsButton.setOnAction(e -> window.setScene(AppointmentsTable));
 
-                Button roomsButton = new Button("Rooms");
-                roomsButton.setGraphic(new ImageView(new Image(Style.ROOM_ICON)));
+                Label roomLabel = new Label("Rooms");
+                GridPane.setHalignment(roomLabel, HPos.CENTER);
+                Button roomsButton = new Button();
+                roomsButton.setGraphic(new ImageView(new Image(ROOM_ICON)));
                 roomsButton.setStyle(Style.ButtonStyle);
                 //roomsButton.setOnAction(e -> window.setScene(RoomsTable));
 
-                Button logoutButton = new Button("Log Out");
-                logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
+                Label logoutLabel = new Label("Log Out");
+                GridPane.setHalignment(logoutLabel, HPos.CENTER);
+                Button logoutButton = new Button();
+                logoutButton.setGraphic(new ImageView(new Image(LOGOUT_ICON)));
                 logoutButton.setStyle(Style.ButtonStyle);
                 logoutButton.setOnAction(e -> window.setScene(Menu));
 
@@ -187,16 +197,78 @@ public class Main extends Application implements Style {
                 GridPane adminGrid = new GridPane();
                 adminGrid.setHgap(20);
                 adminGrid.setVgap(20);
-                adminGrid.setAlignment(Pos.CENTER);
+                adminGrid.setPadding(new Insets(40, 40, 40, 40));
+                adminGrid.setStyle(H2);
                 adminGrid.add(doctorsButton, 0, 0);
                 adminGrid.add(patientsButton, 1, 0);
                 adminGrid.add(appointmentsButton, 2, 0);
-                adminGrid.add(roomsButton, 0, 1);
-                adminGrid.add(logoutButton, 2, 1);
+                adminGrid.add(doctorLabel, 0, 1);
+                adminGrid.add(patientLabel, 1, 1);
+                adminGrid.add(appointmentLabel, 2, 1);
+                adminGrid.add(roomsButton, 0, 2);
+                adminGrid.add(logoutButton, 2, 2);
+                adminGrid.add(roomLabel, 0, 3);
+                adminGrid.add(logoutLabel,2,3);
 
                 adminDashboard.getChildren().addAll(adminGrid);
+        }
+        // Doctor DashBoard
+        {
+            doctorDashboard.setStyle("-fx-background-color: #f0f0f0;");
+            doctorDashboard.setAlignment(Pos.CENTER);
 
-            }
+            Label doctorProfLabel = new Label("Doctors Profile");
+            GridPane.setHalignment(doctorProfLabel, HPos.CENTER);
+            Button doctorProfile = new Button();
+            doctorProfile.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
+            doctorProfile.setStyle(Style.ButtonStyle);
+            //doctorProfile.setOnAction(e -> window.setScene(doctorProfileTable));
+
+            Label patientLabel = new Label("Patients");
+            GridPane.setHalignment(patientLabel, HPos.CENTER);
+            Button patientProfile = new Button();
+            patientProfile.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
+            patientProfile.setStyle(Style.ButtonStyle);
+            // patientProfile.setOnAction(e -> window.setScene(patientProfileTable));
+
+            Label  apptSchedLabel = new Label("Appointments Schedule");
+            GridPane.setHalignment(apptSchedLabel, HPos.CENTER);
+            Button apptSchedule = new Button();
+            apptSchedule.setGraphic(new ImageView(new Image(Style.APPTS_ICON)));
+            apptSchedule.setStyle(Style.ButtonStyle);
+            // apptSchedule.setOnAction (e -> window.setScene(apptScheduleCal);
+
+            Label diagnosisLabel = new Label("Diagnoses");
+            GridPane.setHalignment(diagnosisLabel, HPos.CENTER);
+            Button writeDiagnosis = new Button();
+            writeDiagnosis.setGraphic(new ImageView(new Image(Style.DIAGNOSIS_ICON)));
+            writeDiagnosis.setStyle(Style.ButtonStyle);
+            // writeDiagnosis.setOnAction(e -> )
+
+            Label logoutLabel = new Label("Log Out");
+            GridPane.setHalignment(logoutLabel, HPos.CENTER);
+            Button logoutButton = new Button();
+            logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
+            logoutButton.setStyle(Style.ButtonStyle);
+            logoutButton.setOnAction(e -> window.setScene(Menu));
+
+            GridPane doctorGrid = new GridPane();
+            doctorGrid.setHgap(20);
+            doctorGrid.setVgap(20);
+            doctorGrid.setPadding(new Insets(40, 40, 40, 40));
+            doctorGrid.setStyle(H2);
+            doctorGrid.add(doctorProfile, 0, 0);
+            doctorGrid.add(patientProfile, 1, 0);
+            doctorGrid.add( apptSchedule, 2, 0);
+            doctorGrid.add(doctorProfLabel,0,1);
+            doctorGrid.add(patientLabel,1,1);
+            doctorGrid.add(apptSchedLabel,2,1);
+            doctorGrid.add(writeDiagnosis, 0, 2);
+            doctorGrid.add(logoutButton, 2, 2);
+            doctorGrid.add(diagnosisLabel,0,3);
+            doctorGrid.add(logoutLabel,2,3);
+
+            doctorDashboard.getChildren().addAll(doctorGrid);
         }
         // Patients Table
         {
