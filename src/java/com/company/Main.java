@@ -411,7 +411,7 @@ public class Main extends Application implements Style {
             doctorsT.setStyle("-fx-background-color: #FFFFFF");
             doctorsT.setAlignment(Pos.CENTER);
         }
-        window.setScene(DoctorDashboard);
+        window.setScene(Menu);
         window.show();
     }
     public static void main(String[] args) {
