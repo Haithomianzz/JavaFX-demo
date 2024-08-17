@@ -1,5 +1,9 @@
 package com.company;
-import com.functions.*;
+
+import com.functions.Doctor;
+import com.functions.EmergencyPatient;
+import com.functions.NormalPatient;
+import com.functions.Patient;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,20 +15,21 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.io.IOException;
-import java.util.HashSet;
+
 import java.util.Set;
+
 import static com.database.Handler.verifyCredentials;
-import static com.functions.Patient.save;
-import static com.functions.Patient.updateSet;
 
 public class Main extends Application implements Style {
     Stage window;
-    String UserType;
-    public void start(Stage stage) throws IOException {
+    String SessionID;
+    public void start(Stage stage) {
         window = stage;
         window.setTitle("Healthcare System v1.0");
         int[] Resolution = {1920, 1080};
@@ -42,8 +47,8 @@ public class Main extends Application implements Style {
         Scene LoginForm = new Scene(loginFPane, Resolution[0], Resolution[1]);
         Scene AdminDashboard = new Scene(adminDashboard, Resolution[0], Resolution[1]);
         Scene DoctorDashboard = new Scene(doctorDashboard, Resolution[0],Resolution[1]);
-        Scene DoctorsTable = new Scene(doctorsT);
-        Scene PatientsTable = new Scene(patientsT);
+        Scene DoctorsTable = new Scene(doctorsT, Resolution[0], Resolution[1]);
+        Scene PatientsTable = new Scene(patientsT, Resolution[0], Resolution[1]);
 
         // Menu Page
         {
@@ -56,8 +61,8 @@ public class Main extends Application implements Style {
                 button[i].setMinSize(bwidth, blength);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> stage.setScene(LoginOptions));
-            button[2].setOnAction(e -> stage.close());
+            button[0].setOnAction(_ -> stage.setScene(LoginOptions));
+            button[2].setOnAction(_ -> stage.close());
             VBox mlist = new VBox(50);
             mlist.setStyle(BGColor);
             mlist.setAlignment(Pos.CENTER);
@@ -74,16 +79,10 @@ public class Main extends Application implements Style {
                 button[i].setMinSize(bwidth, blength);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> {
-                setUserType("Admin");
-                window.setScene(LoginForm);
-            });
-            button[1].setOnAction(e -> {
-                setUserType("Doctor");
-                window.setScene(LoginForm);
-            });
+            button[0].setOnAction(_ -> window.setScene(LoginForm));
+            button[1].setOnAction(_ -> window.setScene(LoginForm));
             Button backButton = BackButton();
-            backButton.setOnAction(e -> window.setScene(Menu));
+            backButton.setOnAction(_ -> window.setScene(Menu));
             VBox blist = new VBox(50);
             loginOPane.setStyle(BGColor);
             blist.setAlignment(Pos.CENTER);
@@ -116,11 +115,11 @@ public class Main extends Application implements Style {
 
             Button backButton = BackButton();
 
-            backButton.setOnAction(e -> window.setScene(LoginOptions));
+            backButton.setOnAction(_ -> window.setScene(LoginOptions));
 
             loginButton.setStyle(ButtonStyle);
 
-            loginButton.setOnAction(e -> {
+            loginButton.setOnAction(_ -> {
                 String enteredUsername = usernameField.getText();
                 String enteredPassword = passwordField.getText();
 
@@ -160,14 +159,14 @@ public class Main extends Application implements Style {
                 Button doctorsButton = new Button();
                 doctorsButton.setGraphic(new ImageView(new Image(DOCTORS_ICON)));
                 doctorsButton.setStyle(Style.ButtonStyle);
-                doctorsButton.setOnAction(e -> window.setScene(DoctorsTable));
+                doctorsButton.setOnAction(_ -> window.setScene(DoctorsTable));
 
                 Label patientLabel = new Label("Patients");
                 GridPane.setHalignment(patientLabel, HPos.CENTER);
                 Button patientsButton = new Button();
                 patientsButton.setGraphic(new ImageView(new Image(PATIENTS_ICON)));
                 patientsButton.setStyle(Style.ButtonStyle);
-                patientsButton.setOnAction(e -> window.setScene(PatientsTable));
+                patientsButton.setOnAction(_ -> window.setScene(PatientsTable));
 
                 Label appointmentLabel = new Label("Appointments");
                 GridPane.setHalignment(appointmentLabel, HPos.CENTER);
@@ -188,7 +187,7 @@ public class Main extends Application implements Style {
                 Button logoutButton = new Button();
                 logoutButton.setGraphic(new ImageView(new Image(LOGOUT_ICON)));
                 logoutButton.setStyle(Style.ButtonStyle);
-                logoutButton.setOnAction(e -> window.setScene(Menu));
+                logoutButton.setOnAction(_ -> window.setScene(Menu));
 
 
                 GridPane adminGrid = new GridPane();
@@ -247,7 +246,7 @@ public class Main extends Application implements Style {
             Button logoutButton = new Button();
             logoutButton.setGraphic(new ImageView(new Image(Style.LOGOUT_ICON)));
             logoutButton.setStyle(Style.ButtonStyle);
-            logoutButton.setOnAction(e -> window.setScene(Menu));
+            logoutButton.setOnAction(_ -> window.setScene(Menu));
 
             GridPane doctorGrid = new GridPane();
             doctorGrid.setHgap(20);
@@ -312,7 +311,7 @@ public class Main extends Application implements Style {
             patientsTable.getColumns().addAll(idCol,nameCol, phoneCol, addressCol, genderCol,roomCol);
 
             double tableWidth = idCol.getMinWidth() + nameCol.getMinWidth()+ phoneCol.getMinWidth() + addressCol.getMinWidth() + genderCol.getMinWidth() + roomCol.getMinWidth();
-            patientsTable.setMinWidth(tableWidth+15);
+            patientsTable.setMaxWidth(tableWidth+15);
 
             HBox bar = new HBox(42);
             bar.setAlignment(Pos.CENTER);
@@ -323,14 +322,14 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(AdminDashboard));
-            button[1].setOnAction(e -> {
+            button[0].setOnAction(_ -> window.setScene(AdminDashboard));
+            button[1].setOnAction(_ -> {
                 if (savePatients(patients))
                     AlertBox.alert("Save Successful","Successfully saved Patient Information to server...","Got it");
                 else
                     AlertBox.alert("Save Failed","Save Failed, Something went wrong","Got it");
             });
-            button[2].setOnAction(e -> {
+            button[2].setOnAction(_ -> {
                 if (patientsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editPatient(patientsTable.getSelectionModel().getSelectedItems(), 1);
                 else
@@ -338,8 +337,8 @@ public class Main extends Application implements Style {
 
             });
 
-            button[3].setOnAction(e -> editPatient(patients, 0));
-            button[4].setOnAction(e -> {
+            button[3].setOnAction(_ -> editPatient(patients, 0));
+            button[4].setOnAction(_ -> {
                 if (!patientsTable.getSelectionModel().getSelectedItems().isEmpty()) {
                     patients.removeAll(patientsTable.getSelectionModel().getSelectedItems());
                     patientsTable.getSelectionModel().clearSelection();
@@ -392,14 +391,14 @@ public class Main extends Application implements Style {
                 button[i].setPrefSize(210, 80);
                 button[i].setStyle(ButtonStyle);
             }
-            button[0].setOnAction(e -> window.setScene(AdminDashboard));
-            button[1].setOnAction(e -> {
+            button[0].setOnAction(_ -> window.setScene(AdminDashboard));
+            button[1].setOnAction(_ -> {
                 if(saveDoctors(doctors))
                     AlertBox.alert("Save Successful","Successfully saved Doctor Information to server...","Got it");
                 else
                     AlertBox.alert("Save Failed","Save Failed, Something went wrong","Got it");
             });
-            button[2].setOnAction(e -> {
+            button[2].setOnAction(_ -> {
                 if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
                     editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
                 else
@@ -407,8 +406,8 @@ public class Main extends Application implements Style {
 
             });
 
-            button[3].setOnAction(e -> editDoctor(doctors, 0));
-            button[4].setOnAction(e -> {
+            button[3].setOnAction(_ -> editDoctor(doctors, 0));
+            button[4].setOnAction(_ -> {
                 if (!doctorsTable.getSelectionModel().getSelectedItems().isEmpty()) {
                     doctors.removeAll(doctorsTable.getSelectionModel().getSelectedItems());
                     doctorsTable.getSelectionModel().clearSelection();
@@ -445,13 +444,15 @@ public class Main extends Application implements Style {
         buttons.setAlignment(Pos.CENTER);
         grid.setHgap(20);
         grid.setVgap(5);
+        grid.setMinHeight(465);
         grid.setPadding(new Insets(20,20,20,20));
+
         if (patients.isEmpty())
             currentPatient = null;
         else {
             currentPatient = patients.getFirst();
         }
-        String[] forms = new String[]{"Full Name","Home Address","Phone Number","Gender","Symptoms","Payment Method","Room"};
+        String[] forms = new String[]{"Full Name","Home Address","Phone Number","Gender","Symptoms","Payment Method"};
         Label[] labels = new Label[forms.length];
         TextField[] fields = new TextField[forms.length];
         for (int i = 0; i < forms.length; i++) {
@@ -464,48 +465,69 @@ public class Main extends Application implements Style {
             grid.add(labels[i],0,i);
             grid.add(fields[i],1,i);
         }
-        Label emergency = new Label("Emergency");
+        Label emergency = new Label("Emergency:");
         emergency.setStyle(H2);
         CheckBox emergencyCheck = new CheckBox();
         emergencyCheck.setSelected(false);
-        grid.add(emergency,0,7);
-        grid.add(emergencyCheck,1,7);
-        fields[2].textProperty().addListener((observable, oldValue, newValue) -> {
+        emergencyCheck.setStyle(Checkmark);
+        grid.add(emergency,0,6);
+        grid.add(emergencyCheck,1,6);
+        Label roomLabel = new Label("Room:");
+        roomLabel.setStyle(H2);
+        TextField[] roomField = new TextField[1];
+        roomField[0] = new TextField();
+        roomField[0].setStyle(H3);
+        roomField[0].setPromptText("Room Number");
+        emergencyCheck.selectedProperty().addListener((_, _, newValue) -> {
+            if (newValue) {
+                grid.add(roomLabel,0,7);
+                grid.add(roomField[0],1,7);
+            }
+            else {
+                grid.getChildren().removeAll(roomLabel,roomField[0]);
+            }
+        });
+        fields[2].textProperty().addListener((_, _, newValue) -> {
             if (!newValue.matches("\\d*"))
                 fields[2].setText(newValue.replaceAll("\\D", ""));
         });
-        fields[4].textProperty().addListener((observable, oldValue, newValue) -> {
+        roomField[0].textProperty().addListener((_, _, newValue) -> {
             if (!newValue.matches("\\d*"))
-                fields[6].setText(newValue.replaceAll("\\D", ""));
+                roomField[0].setText(newValue.replaceAll("\\D", ""));
         });
-
         if (op == 1){
-            window.setTitle("Edit Patient");
-            label.setText("Patient #"+ currentPatient.getID());
-            fields[0].setText(currentPatient.getName());
-            fields[1].setText(currentPatient.getAddress());
-            fields[2].setText(currentPatient.getPhoneNumber());
-            fields[3].setText(currentPatient.getGender());
-            fields[4].setText(currentPatient.getSymptoms());
-            fields[5].setText(currentPatient.getPaymentMethod());
-            if(currentPatient.isEmergency()){
-                fields[6].setText(currentPatient.getRoomNumber());
-                emergencyCheck.setSelected(true);
+            if (currentPatient != null){
+                window.setTitle("Edit Patient");
+                label.setText("Patient #"+ currentPatient.getID());
+                fields[0].setText(currentPatient.getName());
+                fields[1].setText(currentPatient.getAddress());
+                fields[2].setText(currentPatient.getPhoneNumber());
+                fields[3].setText(currentPatient.getGender());
+                fields[4].setText(currentPatient.getSymptoms());
+                fields[5].setText(currentPatient.getPaymentMethod());
+                if(currentPatient.isEmergency()){
+                    roomField[0].setText(currentPatient.getRoomNumber());
+                    emergencyCheck.setSelected(true);
+                }
             }
         }
-
         Button confirmButton = new Button("Confirm");
         confirmButton.setStyle(ButtonStyle);
-        confirmButton.setOnAction(e-> {
+        confirmButton.setOnAction(_ -> {
             if (checkEmptyForm(fields)) {
                 AlertBox.alert("Warning","Please add the missing Information","Got it");
             }
             else {
                 if (op == 0) {
                     if (emergencyCheck.isSelected()){
-                        Patient newPatient = new  EmergencyPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
-                                fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
-                        patients.add(newPatient);
+                        if (checkEmptyForm(roomField)){
+                            AlertBox.alert("Warning","Please add the missing Information","Got it");
+                        }
+                        else {
+                            Patient newPatient = new  EmergencyPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
+                                    fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(roomField[0].getText()),emergencyCheck.isSelected());
+                            patients.add(newPatient);
+                        }
                     }
                     else{
                         Patient newPatient = new NormalPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
@@ -514,14 +536,16 @@ public class Main extends Application implements Style {
                     }
                 }
                 else {
-                    currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(), fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(fields[6].getText()),emergencyCheck.isSelected());
+                    if (currentPatient != null) {
+                        currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(), fields[3].getText(),fields[4].getText(),fields[5].getText(),roomField[0].getText(),emergencyCheck.isSelected());
+                    }
                 }
                 window.close();
             }
         });
         Button cancelButton = new Button("Cancel");
         cancelButton.setStyle(ButtonStyle);
-        cancelButton.setOnAction(e-> window.close());
+        cancelButton.setOnAction(_ -> window.close());
         buttons.getChildren().addAll(confirmButton,cancelButton);
         window.setScene(new Scene(layout));
         window.show();
@@ -568,23 +592,25 @@ public class Main extends Application implements Style {
             grid.add(fields[i],1,i);
         }
 
-        fields[2].textProperty().addListener((observable, oldValue, newValue) -> {
+        fields[2].textProperty().addListener((_, _, newValue) -> {
             if (!newValue.matches("\\d*"))
                 fields[2].setText(newValue.replaceAll("\\D", ""));
         });
 
 
         if (op == 1){
-            window.setTitle("Edit Doctor");
-            label.setText("Doctor #"+ currentDoctor.getID());
-            fields[0].setText(currentDoctor.getName());
-            fields[1].setText(currentDoctor.getAddress());
-            fields[2].setText(currentDoctor.getPhoneNumber());
-            fields[3].setText(currentDoctor.getSpecialty());
+            if (currentDoctor != null){
+                window.setTitle("Edit Doctor");
+                label.setText("Doctor #"+ currentDoctor.getID());
+                fields[0].setText(currentDoctor.getName());
+                fields[1].setText(currentDoctor.getAddress());
+                fields[2].setText(currentDoctor.getPhoneNumber());
+                fields[3].setText(currentDoctor.getSpecialty());
+            }
         }
         Button confirmButton = new Button("Confirm");
         confirmButton.setStyle(ButtonStyle);
-        confirmButton.setOnAction(e-> {
+        confirmButton.setOnAction(_ -> {
             if (checkEmptyForm(fields)) {
                 AlertBox.alert("Warning","Please add the missing Information","Got it");
             }
@@ -594,14 +620,16 @@ public class Main extends Application implements Style {
                     doctors.add(newDoctor);
                 }
                 else {
-                   currentDoctor.EditDoctor(fields[0].getText(),fields[1].getText(),fields[2].getText(),fields[3].getText());
+                    if (currentDoctor != null) {
+                        currentDoctor.EditDoctor(fields[0].getText(),fields[1].getText(),fields[2].getText(),fields[3].getText());
+                    }
                 }
                 window.close();
             }
         });
         Button cancelButton = new Button("Cancel");
         cancelButton.setStyle(ButtonStyle);
-        cancelButton.setOnAction(e-> window.close());
+        cancelButton.setOnAction(_ -> window.close());
         buttons.getChildren().addAll(confirmButton,cancelButton);
         window.setScene(new Scene(layout));
         window.show();
@@ -630,7 +658,6 @@ public class Main extends Application implements Style {
             return false;
         }
     }
-
     public Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
@@ -638,12 +665,10 @@ public class Main extends Application implements Style {
         return backbutton;
     }
     public boolean checkEmptyForm(TextField[] fields) {
-        for (int i = 0; i < fields.length - 1; i++) {
-            if (fields[i].getText().isEmpty())
+        for (TextField field : fields) {
+            if (field.getText().isEmpty())
                 return true;
         }
         return false;
     }
-    public String getUserType() {return UserType;}
-    public void setUserType(String userType) {this.UserType = userType;}
 }

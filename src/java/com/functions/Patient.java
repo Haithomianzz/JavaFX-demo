@@ -119,7 +119,7 @@ public abstract class Patient extends Person {
     }
 
     public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
-                            String newSymptoms, String newPaymentMethod,Integer newRoomNumber, Boolean newEmergency ) {
+                            String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency ) {
         // Retrieve the patient object from the map
             // Update fields only if new values are provided
             this.name = (newName != null) ? newName : this.name;
@@ -130,7 +130,7 @@ public abstract class Patient extends Person {
             this.paymentMethod = (newPaymentMethod != null) ? newPaymentMethod : this.paymentMethod;
             this.emergency = (newEmergency != null) ? newEmergency : this.emergency;
             if(newEmergency)
-                this.roomNumber = String.valueOf(newRoomNumber);
+                this.roomNumber = (newRoomNumber != null) ? newRoomNumber : this.roomNumber;
             else
                 this.roomNumber = "N/A";
 //            this.doctorInCharge = (newDoctorInCharge != null) ? newDoctorInCharge : this.doctorInCharge;
