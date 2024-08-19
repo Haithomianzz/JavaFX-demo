@@ -20,7 +20,6 @@ public class Doctor extends Person{
     static {
         doctors = loadToHashSet(); // Load from database after initialization
     }
-
     public Doctor(String name, String address, String phoneNumber, String specialty) {
         super(name, address, phoneNumber);
         synchronized (Person.class){
@@ -52,67 +51,77 @@ public class Doctor extends Person{
 
     public void EditDoctor(String newName, String newAddress, String newPhoneNumber, String newSpecialty) {
         // Retrieve the doctor object from the map using the provided doctorId
-
-
             // Update fields only if new values are provided
             this.name = (newName != null) ? newName : this.name;
             this.address = (newAddress != null) ? newAddress : this.address;
             this.phoneNumber = (newPhoneNumber != null) ? newPhoneNumber : this.phoneNumber;
             this.specialty = (newSpecialty != null) ? newSpecialty : this.specialty;
-
     }
 
-    public static boolean save() {
+//    public static boolean save() {
+//        DatabaseConnector.connect();
+//        String deleteQuery = "DELETE FROM doctors";
+//        String sql = "INSERT INTO doctors (idDoctors, name, address, phoneNumber, specialty) VALUES (?, ?, ?, ?, ?)";
+//        try (var connection = DatabaseConnector.connection();
+//            PreparedStatement preparedStmt = connection.prepareStatement(sql);
+//            PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery);)
+//            {
+//            deleteStmt.execute();
+//            for (var doctor : doctors) {
+//                // Save doctor if no duplicates
+//                preparedStmt.setInt(1, doctor.getID());
+//                preparedStmt.setString(2, doctor.name);
+//                preparedStmt.setString(3, doctor.address);
+//                preparedStmt.setString(4, doctor.phoneNumber);
+//                preparedStmt.setString(5, doctor.getSpecialty());
+//                preparedStmt.execute();
+//            }
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return true;
+//    }
+    public static Boolean save(Doctor doctor){
+        if (delete(doctor) && add(doctor)){
+            System.out.println("Save Successful");
+            return true;
+        }
+        else    {
+            System.out.println("Save Failed");
+            return false;
+        }
+
+    }
+    public static boolean delete(Doctor doctor) {
         DatabaseConnector.connect();
-        String deleteQuery = "DELETE FROM doctors";
+        String qry = "DELETE FROM doctors WHERE idDoctors= '%s'".formatted(doctor.getID());
+        try (var connection = DatabaseConnector.connection();
+             Statement statement = connection.createStatement();
+             PreparedStatement preparedStatement = connection.prepareStatement(qry);
+        ) {
+            preparedStatement.execute();
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static boolean add(Doctor doctor) {
+        DatabaseConnector.connect();
         String sql = "INSERT INTO doctors (idDoctors, name, address, phoneNumber, specialty) VALUES (?, ?, ?, ?, ?)";
         try (var connection = DatabaseConnector.connection();
-            PreparedStatement preparedStmt = connection.prepareStatement(sql);
-            PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery);)
-            {
-            deleteStmt.execute();
-            for (var doctor : doctors) {
+             PreparedStatement preparedStmt = connection.prepareStatement(sql);) {
                 // Save doctor if no duplicates
                 preparedStmt.setInt(1, doctor.getID());
-                preparedStmt.setString(2, doctor.name);
-                preparedStmt.setString(3, doctor.address);
-                preparedStmt.setString(4, doctor.phoneNumber);
+                preparedStmt.setString(2, doctor.getName());
+                preparedStmt.setString(3, doctor.getAddress());
+                preparedStmt.setString(4, doctor.getPhoneNumber());
                 preparedStmt.setString(5, doctor.getSpecialty());
                 preparedStmt.execute();
-            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return true;
     }
-
-
-
-//    public static boolean delete(Doctor doctor) {
-//        DatabaseConnector.connect();
-//        String query = "SELECT * FROM doctors";
-//        String qry = "DELETE FROM doctors WHERE idDoctors= '%s'".formatted(doctor.getID());
-//        try (var connection = DatabaseConnector.connection();
-//             Statement statement = connection.createStatement();
-//             PreparedStatement preparedStatement = connection.prepareStatement(qry);
-//        ) {
-//
-//            ResultSet resultSet = statement.executeQuery(query);
-//
-//            while (resultSet.next()) {
-//                if (resultSet.getString("phoneNumber").equals(doctor.phoneNumber)) {
-//                    preparedStatement.execute();
-//                    System.out.println("Record deleted");
-//                    return true;
-//                }
-//            }
-//            System.out.println("record doesn't exist");
-//
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return false;
-//    }
 
 
 //    private static int loadLastId() {

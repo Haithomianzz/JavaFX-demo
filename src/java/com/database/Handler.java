@@ -183,7 +183,6 @@ public class Handler {
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, username);
         ResultSet resultSet = preparedStatement.executeQuery();
-
         // Check if the username exists and verify the password
         if (resultSet.next()) {
             String storedPassword = resultSet.getString("password");
@@ -191,7 +190,6 @@ public class Handler {
                 return true;
             }
         }
-
         // Close the ResultSet and PreparedStatement
         resultSet.close();
         preparedStatement.close();

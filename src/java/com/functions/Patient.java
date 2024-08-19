@@ -82,16 +82,97 @@ public abstract class Patient extends Person {
         patients.clear();
         patients.addAll(newPatients);
     }
-    public static boolean save() {
-        DatabaseConnector.connect();
-        String deleteQuery = "DELETE FROM patients";
-        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagno, emergency, roomNumber, doctorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+    public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
+                             String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency ) {
+        // Retrieve the patient object from the map
+        // Update fields only if new values are provided
+        this.name = (newName != null) ? newName : this.name;
+        this.address = (newAddress != null) ? newAddress : this.address;
+        this.phoneNumber = (newPhoneNumber != null) ? newPhoneNumber : this.phoneNumber;
+        this.gender = (newGender != null) ? newGender : this.gender;
+        this.symptoms = (newSymptoms != null) ? newSymptoms : this.symptoms;
+        this.paymentMethod = (newPaymentMethod != null) ? newPaymentMethod : this.paymentMethod;
+        this.emergency = (newEmergency != null) ? newEmergency : this.emergency;
+        if(newEmergency)
+            this.roomNumber = (newRoomNumber != null) ? newRoomNumber : this.roomNumber;
+        else
+            this.roomNumber = "N/A";
+//            this.doctorInCharge = (newDoctorInCharge != null) ? newDoctorInCharge : this.doctorInCharge;
+    }
+//    public static boolean save() {
+//        DatabaseConnector.connect();
+//        String deleteQuery = "DELETE FROM patients";
+//        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagno, emergency, roomNumber, doctorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+//        try (var connection = DatabaseConnector.connection();
+//             PreparedStatement preparedStmt = connection.prepareStatement(sql);
+//             PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery);) {
+//             deleteStmt.execute();
+//            for (Patient patient : patients) {
+//                // Save patient if no duplicates
+//                preparedStmt.setInt(1, patient.getID());
+//                preparedStmt.setString(2, patient.getName());
+//                preparedStmt.setString(3, patient.getAddress());
+//                preparedStmt.setString(4, patient.getPhoneNumber());
+//                preparedStmt.setString(5, patient.getGender());
+//                preparedStmt.setString(6, patient.getSymptoms());
+//                preparedStmt.setString(7, patient.getPaymentMethod());
+//                preparedStmt.setString(8, patient.getDiagnosis());
+//                if (patient.isEmergency()){
+//                    preparedStmt.setInt(9, 1);
+//                    preparedStmt.setInt(10, Integer.parseInt(patient.getRoomNumber()));
+//                }
+//                else{
+//                    preparedStmt.setInt(9, 0);
+//                    preparedStmt.setInt(10, 0);
+//                }
+//                preparedStmt.setInt(11, patient.getDoctorInCharge());
+//                preparedStmt.execute();
+//            }
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return true;
+//    }
+    public static Boolean save(Patient patient){
+        if (delete(patient) && add(patient)){
+            System.out.println("Save Successful");
+            return true;
+        }
+        else    {
+            System.out.println("Save Failed");
+            return false;
+        }
 
+    }
+
+    public static boolean delete(Patient patient) {
+        patients.remove(patient);
+        DatabaseConnector.connect();
+        String query = "SELECT * FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
+        String qry = "DELETE FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
         try (var connection = DatabaseConnector.connection();
-             PreparedStatement preparedStmt = connection.prepareStatement(sql);
-             PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery);) {
-             deleteStmt.execute();
-            for (Patient patient : patients) {
+             Statement statement = connection.createStatement();
+             PreparedStatement preparedStatement = connection.prepareStatement(qry);
+        ) {
+            ResultSet resultSet = statement.executeQuery(query);
+            while (resultSet.next()) {
+                if (resultSet.getInt("idpatients") == (patient.getID())) {
+                    preparedStatement.execute();
+                    return true;
+                }
+            }
+            System.out.println("record doesn't exist");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+    public static boolean add(Patient patient) {
+        patients.add(patient);
+        DatabaseConnector.connect();
+        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagno, emergency, roomNumber, doctorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement preparedStmt = connection.prepareStatement(sql); ){
                 // Save patient if no duplicates
                 preparedStmt.setInt(1, patient.getID());
                 preparedStmt.setString(2, patient.getName());
@@ -111,72 +192,25 @@ public abstract class Patient extends Person {
                 }
                 preparedStmt.setInt(11, patient.getDoctorInCharge());
                 preparedStmt.execute();
-            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return true;
     }
+    public static boolean diagnose(Patient patient) {
+        DatabaseConnector.connect();
+        String query = String.format("UPDATE patients SET diagno = '%s' WHERE idpatients = '%d';", patient.getDiagnosis(), patient.getID());
 
-    public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
-                            String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency ) {
-        // Retrieve the patient object from the map
-            // Update fields only if new values are provided
-            this.name = (newName != null) ? newName : this.name;
-            this.address = (newAddress != null) ? newAddress : this.address;
-            this.phoneNumber = (newPhoneNumber != null) ? newPhoneNumber : this.phoneNumber;
-            this.gender = (newGender != null) ? newGender : this.gender;
-            this.symptoms = (newSymptoms != null) ? newSymptoms : this.symptoms;
-            this.paymentMethod = (newPaymentMethod != null) ? newPaymentMethod : this.paymentMethod;
-            this.emergency = (newEmergency != null) ? newEmergency : this.emergency;
-            if(newEmergency)
-                this.roomNumber = (newRoomNumber != null) ? newRoomNumber : this.roomNumber;
-            else
-                this.roomNumber = "N/A";
-//            this.doctorInCharge = (newDoctorInCharge != null) ? newDoctorInCharge : this.doctorInCharge;
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement statement = connection.prepareStatement(query);
+        ) {
+            statement.executeUpdate(query);
+            System.out.println("Patient diagnosed");
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-//    public static boolean delete(Patient patient) {
-//        DatabaseConnector.connect();
-//        String query = "SELECT * FROM patients";
-//        String qry = "DELETE FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
-//        try (var connection = DatabaseConnector.connection();
-//             Statement statement = connection.createStatement();
-//             PreparedStatement preparedStatement = connection.prepareStatement(qry);
-//        ) {
-//
-//            ResultSet resultSet = statement.executeQuery(query);
-//
-//            while (resultSet.next()) {
-//                if (resultSet.getInt("idpatients") == (patient.ID)) {
-//                    System.out.println("Record deleted");
-//                    preparedStatement.execute();
-//                    return true;
-//                }
-//            }
-//            System.out.println("record doesn't exist");
-//
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return false;
-//    }
-
-//    private static int loadLastId() {
-//        DatabaseConnector.connect();
-//        int lastId = 1; // Default value if loading fails
-//        String query = "SELECT MAX(idDoctors) AS idDoctors FROM doctors";
-//        try (Connection conn = DatabaseConnector.connection();
-//             PreparedStatement stmt = conn.prepareStatement(query)) {
-//            ResultSet rs = stmt.executeQuery();
-//            if (rs.next()) {
-//                lastId = rs.getInt("idDoctors") +1;
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return lastId;
-//    }
     public static HashSet<Patient> loadToHashSet(){
         return new HashSet<>(patientsMap.values());
     }
