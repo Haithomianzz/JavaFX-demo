@@ -1,5 +1,6 @@
 package com.database;
 
+import com.company.Main;
 import com.functions.*;
 
 import java.sql.*;
@@ -28,6 +29,7 @@ public class Handler {
             while (resultSet.next()) {
                 int id = resultSet.getInt("idDoctors");
                 Doctor doctor = new Doctor(
+                        id,
                         resultSet.getString("name"),
                         resultSet.getString("address"),
                         resultSet.getString("phoneNumber"),
@@ -79,6 +81,7 @@ public class Handler {
                 Patient patient;
                 if (resultSet.getInt("emergency") == 1){
                      patient = new EmergencyPatient(
+                            id,
                             resultSet.getString("name"),
                             resultSet.getString("address"),
                             resultSet.getString("phoneNumber"),
@@ -86,21 +89,22 @@ public class Handler {
                             resultSet.getString("symptoms"),
                             resultSet.getString("paymentMethod"),
                             resultSet.getInt("roomNumber"),
-                            resultSet.getBoolean("emergency"));
+                            resultSet.getBoolean("emergency"),
+                            resultSet.getInt("doctorid"));
                     patient.setDiagnosis(resultSet.getString("diagno"));
-                    patient.setDoctorInCharge(resultSet.getInt("doctorid"));
                 }
                 else {
                     patient = new NormalPatient(
+                            id,
                             resultSet.getString("name"),
                             resultSet.getString("address"),
                             resultSet.getString("phoneNumber"),
                             resultSet.getString("gender"),
                             resultSet.getString("symptoms"),
                             resultSet.getString("paymentMethod"),
-                            resultSet.getBoolean("emergency"));
+                            resultSet.getBoolean("emergency"),
+                            resultSet.getInt("doctorid"));
                     patient.setDiagnosis(resultSet.getString("diagno"));
-                    patient.setDoctorInCharge(resultSet.getInt("doctorid"));
                 }
                 patientHashMap.put(id, patient);
             }
@@ -177,7 +181,7 @@ public class Handler {
         connection = DatabaseConnector.connection();
 
         // SQL query to retrieve data
-        String sql = "SELECT password FROM userdata WHERE username = ?";
+        String sql = "SELECT * FROM userdata WHERE username = ?";
 
         // Prepare statement and set parameters
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -185,8 +189,19 @@ public class Handler {
         ResultSet resultSet = preparedStatement.executeQuery();
         // Check if the username exists and verify the password
         if (resultSet.next()) {
+            int storedId = resultSet.getInt("doctorid");
             String storedPassword = resultSet.getString("password");
             if (storedPassword.equals(password)) {
+                if (storedId != 0){
+                    for(Doctor d : Doctor.getDoctors()){
+                        if (d.getID() == storedId){
+                            Main.setCurrentDoctor(d);
+                            Main.setUserType("Doctor");
+                        }
+                    }
+                }
+                else
+                    Main.setUserType("Admin");
                 return true;
             }
         }

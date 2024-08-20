@@ -17,7 +17,7 @@ public class Appointment {
 
     private int patientId;
     private int doctorId;
-    private Date date;
+    private String Date;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
     private static Set<Appointment> appointments = new HashSet<>();

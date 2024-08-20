@@ -1,5 +1,6 @@
 package com.company;
 
+import com.functions.Appointment;
 import com.functions.Doctor;
 import com.functions.EmergencyPatient;
 import com.functions.NormalPatient;
@@ -14,6 +15,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
@@ -37,16 +39,14 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Set;
-
 import static com.database.Handler.verifyCredentials;
-
 public class Main extends Application implements Style {
-    Stage window;
-    Doctor SessionDoctor;
-    YearMonth currentMonth;
+    private Stage window;
+    private static Doctor SessionDoctor;
+    private YearMonth currentMonth;
     private GridPane calendarGrid;
-    Label monthLabel;
-    String UserType;
+    private Label monthLabel;
+    private static String UserType;
     public void start(Stage stage) {
         window = stage;
         window.setTitle("Healthcare System v1.0");
@@ -59,6 +59,7 @@ public class Main extends Application implements Style {
         VBox doctorDashboard = new VBox();
         BorderPane doctorsT = new BorderPane();
         BorderPane patientsT = new BorderPane();
+        BorderPane appointmentsT = new BorderPane();
         VBox diagnosisM = new VBox(20);
         BorderPane schedule = new BorderPane();
         // Scenes
@@ -69,18 +70,18 @@ public class Main extends Application implements Style {
         Scene DoctorDashboard = new Scene(doctorDashboard, Resolution[0],Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT, Resolution[0], Resolution[1]);
         Scene PatientsTable = new Scene(patientsT, Resolution[0], Resolution[1]);
+        Scene AppointmentsTable = new Scene(appointmentsT, Resolution[0], Resolution[1]);
         Scene DiagnosisMenu = new Scene(diagnosisM);
         Scene ApptSchedule = new Scene(schedule,Resolution[0],Resolution[1]);
         // Menu Page
         {
-
             Image backgroundImage = new Image("file:src/java/com/company/resources/background.png");
             ImageView backgroundImageView = new ImageView(backgroundImage);
             backgroundImageView.setFitWidth(1920);
             backgroundImageView.setFitHeight(1080);
             backgroundImageView.setPreserveRatio(true);
 
-            String[] bLabels = new String[]{"Login", "Settings", "Exit"};
+            String[] bLabels = new String[]{"Login", "Exit"};
             Label label = new Label("Welcome to the Healthcare System");
             label.setStyle(H1);
             Button[] button = new Button[bLabels.length];
@@ -90,7 +91,7 @@ public class Main extends Application implements Style {
                 button[i].setStyle(ButtonStyle);
             }
             button[0].setOnAction(_ -> stage.setScene(LoginOptions));
-            button[2].setOnAction(_ -> stage.close());
+            button[1].setOnAction(_ -> stage.close());
 
 
             VBox frame = new VBox(50);
@@ -126,11 +127,9 @@ public class Main extends Application implements Style {
                 button[i].setStyle(ButtonStyle);
             }
             button[0].setOnAction(_ -> {
-                setUserType("Admin");
                 window.setScene(LoginForm);
             });
             button[1].setOnAction(_ -> {
-                setUserType("Doctor");
                 window.setScene(LoginForm);
             });
             VBox frame = new VBox(50);
@@ -195,7 +194,10 @@ public class Main extends Application implements Style {
                 if (verifyCredentials(enteredUsername, enteredPassword)) {
                     resultLabel.setText("Successful Login!");
                     resultLabel.setStyle(Success + H2);
-                    window.setScene(AdminDashboard);
+                        if (getUserType().equals("Admin"))
+                            window.setScene(AdminDashboard);
+                        else if (getUserType().equals("Doctor"))
+                            window.setScene(DoctorDashboard);
                 } else {
                     resultLabel.setText("Incorrect Credentials!");
                     resultLabel.setStyle(Warning + H2);
@@ -319,8 +321,11 @@ public class Main extends Application implements Style {
             Button doctorProfile = new Button();
             doctorProfile.setGraphic(new ImageView(new Image(Style.DOCTORS_ICON)));
             doctorProfile.setStyle(Style.ButtonStyle);
-            //doctorProfile.setOnAction(_ -> window.setScene(doctorProfileTable));
-
+            doctorProfile.setOnAction(_ -> {
+                ObservableList<Doctor> doctors = FXCollections.observableArrayList();
+                doctors.add(SessionDoctor);
+                editDoctor(doctors,1);
+            });
             Label patientLabel = new Label("Patients");
             GridPane.setHalignment(patientLabel, HPos.CENTER);
             Button patientProfile = new Button();
@@ -492,10 +497,36 @@ public class Main extends Application implements Style {
             patientsT.setRight(new VBox());
             patientsT.setBottom(new HBox());
         }
+        // Appointments Table
+        {
+            Label AptLabel = new Label("Appointments");
+            AptLabel.setStyle(TableLabel);
+
+            TableColumn<Appointment, Integer> appointmentCol = new TableColumn<>("Appointment #");
+            appointmentCol.setMinWidth(300);
+            appointmentCol.setStyle(H3);
+            appointmentCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+
+            TableColumn<Appointment, Integer> patientCol = new TableColumn<>("Patient #");
+            patientCol.setMinWidth(300);
+            patientCol.setStyle(H3);
+            patientCol.setCellValueFactory(new PropertyValueFactory<>("patientId"));
+
+            TableColumn<Appointment, Integer> doctorCol = new TableColumn<>("Doctor #");
+            doctorCol.setMinWidth(300);
+            doctorCol.setStyle(H3);
+            doctorCol.setCellValueFactory(new PropertyValueFactory<>("doctorId"));
+
+            TableColumn<Appointment, String> dateCol = new TableColumn<>("Date");
+            dateCol.setMinWidth(300);
+            dateCol.setStyle(H3);
+            dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+        }
         // Doctors Table
         {
             Label DocLabel = new Label("Doctors Table");
             DocLabel.setStyle(TableLabel);
+
             TableColumn<Doctor, Integer> docCol = new TableColumn<>("ID");
             docCol.setMinWidth(100);
             docCol.setStyle(H3);
@@ -825,7 +856,7 @@ public class Main extends Application implements Style {
             Label[] emergLabels = new Label[emergData.length];
             for (int i = 0; i < emergData.length; i++) {
                 emergLabels[i] = new Label(emergData[i]);
-                emergLabels[i].setStyle(H2);
+                emergLabels[i].setStyle(H3);
                 grid.add(emergLabels[i],i,2);
 
             }
@@ -856,7 +887,6 @@ public class Main extends Application implements Style {
         LocalDate firstDayOfMonth = currentMonth.atDay(1);
         int dayOfWeek = firstDayOfMonth.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
         int daysInMonth = currentMonth.lengthOfMonth();
-
 
         String[] dayNames = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
         for (int i = 0; i < dayNames.length; i++) {
@@ -926,13 +956,24 @@ public class Main extends Application implements Style {
             grid.add(labels[i],0,i);
             grid.add(fields[i],1,i);
         }
+        Label doctorIC = new Label("Physician:");
+        doctorIC.setStyle(H2);
+
+        ChoiceBox<String> Doctors = new ChoiceBox<>();
+        Doctors.getItems().add("Doctor...");
+        Doctors.getSelectionModel().select("Doctor...");
+        for (Doctor d: getDoctors())
+            Doctors.getItems().add(d.getName());
+        Doctors.setStyle(H3);
+        grid.add(doctorIC,0,6);
+        grid.add(Doctors,1,6);
         Label emergency = new Label("Emergency:");
         emergency.setStyle(H2);
         CheckBox emergencyCheck = new CheckBox();
         emergencyCheck.setSelected(false);
         emergencyCheck.setStyle(Checkmark);
-        grid.add(emergency,0,6);
-        grid.add(emergencyCheck,1,6);
+        grid.add(emergency,0,7);
+        grid.add(emergencyCheck,1,7);
         Label roomLabel = new Label("Room:");
         roomLabel.setStyle(H2);
         TextField[] roomField = new TextField[1];
@@ -941,8 +982,8 @@ public class Main extends Application implements Style {
         roomField[0].setPromptText("Room Number");
         emergencyCheck.selectedProperty().addListener((_, _, newValue) -> {
             if (newValue) {
-                grid.add(roomLabel,0,7);
-                grid.add(roomField[0],1,7);
+                grid.add(roomLabel,0,8);
+                grid.add(roomField[0],1,8);
             }
             else {
                 grid.getChildren().removeAll(roomLabel,roomField[0]);
@@ -966,6 +1007,9 @@ public class Main extends Application implements Style {
                 fields[3].setText(currentPatient.getGender());
                 fields[4].setText(currentPatient.getSymptoms());
                 fields[5].setText(currentPatient.getPaymentMethod());
+                for (Doctor d: getDoctors())
+                    if (d.getID() == currentPatient.getDoctorInCharge())
+                        Doctors.getSelectionModel().select(d.getName());
                 if(currentPatient.isEmergency()){
                     roomField[0].setText(currentPatient.getRoomNumber());
                     emergencyCheck.setSelected(true);
@@ -975,10 +1019,15 @@ public class Main extends Application implements Style {
         Button confirmButton = new Button("Confirm");
         confirmButton.setStyle(ButtonStyle);
         confirmButton.setOnAction(_ -> {
-            if (checkEmptyForm(fields)) {
-                AlertBox.alert("Warning","Please add the missing Information","Got it");
+            if (checkEmptyForm(fields)){
+                if (Doctors.getSelectionModel().getSelectedIndex() == 1)
+                      AlertBox.alert("Warning","Please add the missing Information","Got it");
             }
             else {
+                int dID = 0;
+                for (Doctor d: getDoctors())
+                    if (d.getName().equals(Doctors.getSelectionModel().getSelectedItem()))
+                        dID = d.getID();
                 if (mode == 0) {
                     if (emergencyCheck.isSelected()){
                         if (checkEmptyForm(roomField)){
@@ -986,21 +1035,21 @@ public class Main extends Application implements Style {
                         }
                         else {
                             Patient newPatient = new  EmergencyPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
-                                    fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(roomField[0].getText()),emergencyCheck.isSelected());
+                                    fields[3].getText(),fields[4].getText(),fields[5].getText(),Integer.parseInt(roomField[0].getText()),emergencyCheck.isSelected(),dID);
                             patients.add(newPatient);
                             Patient.add(newPatient);
                         }
                     }
                     else{
                         Patient newPatient = new NormalPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(),
-                                fields[3].getText(),fields[4].getText(),fields[5].getText(),emergencyCheck.isSelected());
+                                fields[3].getText(),fields[4].getText(),fields[5].getText(),emergencyCheck.isSelected(),dID);
                         patients.add(newPatient);
                         Patient.add(newPatient);
                     }
                 }
                 else {
                     if (currentPatient != null) {
-                        currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(), fields[3].getText(),fields[4].getText(),fields[5].getText(),roomField[0].getText(),emergencyCheck.isSelected());
+                        currentPatient.EditPatient(fields[0].getText(),fields[1].getText(),fields[2].getText(), fields[3].getText(),fields[4].getText(),fields[5].getText(),roomField[0].getText(),emergencyCheck.isSelected(),dID);
                         Patient.save(currentPatient);
                     }
                 }
@@ -1096,29 +1145,8 @@ public class Main extends Application implements Style {
         window.setScene(new Scene(layout));
         window.show();
     }
-    private Set<Doctor> getDoctors(){return Doctor.loadToHashSet();}
-    private Set<Patient> getPatients(){return Patient.loadToHashSet();}
-//    private Boolean savePatients(ObservableList<Patient> patients){
-//        Patient.updateSet(patients);
-//        if (Patient.save()){
-//            return true;
-//        }
-//        else{
-//            System.out.println("Save Failed");
-//            return false;
-//        }
-//    }
-//    private Boolean saveDoctors(ObservableList<Doctor> doctors){
-//        Doctor.updateSet(doctors);
-//        if (Doctor.save()){
-//            System.out.println("Save Successful");
-//            return true;
-//        }
-//        else {
-//            System.out.println("Save Failed");
-//            return false;
-//        }
-//    }
+    private Set<Doctor> getDoctors(){return Doctor.loadDoctors();}
+    private Set<Patient> getPatients(){return Patient.loadPatients();}
     private Button BackButton(){
         Button backbutton = new Button("Back");
         backbutton.setMinSize(bwidth,blength);
@@ -1135,7 +1163,10 @@ public class Main extends Application implements Style {
     private String getUserType() {
         return UserType;
     }
-    private void setUserType(String userType) {
+    public static void setUserType(String userType) {
         UserType = userType;
+    }
+    public static void setCurrentDoctor(Doctor currentDoctor) {
+        SessionDoctor = currentDoctor;
     }
 }

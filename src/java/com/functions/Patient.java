@@ -15,22 +15,36 @@ public abstract class Patient extends Person {
     private boolean emergency;
     private String roomNumber = "N/A";
     private int doctorInCharge;
-    private static int lastId = 1;
-    private final int ID = lastId;
-
-    private static Set<Patient> patients = new HashSet<>();
-    private static Map<Integer, Patient> patientsMap= Handler.loadPatients();
+    private static int lastId;
+    private final int ID;
+    private static HashSet<Patient> patients = new HashSet<>();
+    private static Map<Integer, Patient> patientsMap= new HashMap<>();
     static {
+        lastId = loadLastId();
+        patientsMap= Handler.loadPatients();
         patients = loadToHashSet(); // Load from database after initialization
+
     }
     public Patient(String name, String address, String phoneNumber, String gender,
-                   String symptoms, String paymentMethod, boolean emergency) {
+                   String symptoms, String paymentMethod, boolean emergency, int doctorInCharge) {
         super(name, address, phoneNumber);
         this.gender = gender;
         this.symptoms = symptoms;
         this.paymentMethod = paymentMethod;
         this.emergency = emergency;
-        lastId++;
+        this.ID = ++lastId;
+        this.doctorInCharge = doctorInCharge;
+        addPatient(this);
+    }
+    public Patient(int ID,String name, String address, String phoneNumber, String gender,
+                   String symptoms, String paymentMethod, boolean emergency,int doctorInCharge) {
+        super(name, address, phoneNumber);
+        this.gender = gender;
+        this.symptoms = symptoms;
+        this.paymentMethod = paymentMethod;
+        this.emergency = emergency;
+        this.ID = ID;
+        this.doctorInCharge = doctorInCharge;
         addPatient(this);
     }
     private void addPatient(Patient patient) {
@@ -83,7 +97,7 @@ public abstract class Patient extends Person {
         patients.addAll(newPatients);
     }
     public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
-                             String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency ) {
+                             String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency, Integer doctorInCharge) {
         // Retrieve the patient object from the map
         // Update fields only if new values are provided
         this.name = (newName != null) ? newName : this.name;
@@ -98,52 +112,48 @@ public abstract class Patient extends Person {
         else
             this.roomNumber = "N/A";
 //            this.doctorInCharge = (newDoctorInCharge != null) ? newDoctorInCharge : this.doctorInCharge;
+        this.doctorInCharge = (doctorInCharge != null) ? doctorInCharge : this.doctorInCharge;
     }
-//    public static boolean save() {
-//        DatabaseConnector.connect();
-//        String deleteQuery = "DELETE FROM patients";
-//        String sql = "INSERT INTO patients (idpatients, name, address, phoneNumber, gender, symptoms, paymentMethod, diagno, emergency, roomNumber, doctorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
-//        try (var connection = DatabaseConnector.connection();
-//             PreparedStatement preparedStmt = connection.prepareStatement(sql);
-//             PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery);) {
-//             deleteStmt.execute();
-//            for (Patient patient : patients) {
-//                // Save patient if no duplicates
-//                preparedStmt.setInt(1, patient.getID());
-//                preparedStmt.setString(2, patient.getName());
-//                preparedStmt.setString(3, patient.getAddress());
-//                preparedStmt.setString(4, patient.getPhoneNumber());
-//                preparedStmt.setString(5, patient.getGender());
-//                preparedStmt.setString(6, patient.getSymptoms());
-//                preparedStmt.setString(7, patient.getPaymentMethod());
-//                preparedStmt.setString(8, patient.getDiagnosis());
-//                if (patient.isEmergency()){
-//                    preparedStmt.setInt(9, 1);
-//                    preparedStmt.setInt(10, Integer.parseInt(patient.getRoomNumber()));
-//                }
-//                else{
-//                    preparedStmt.setInt(9, 0);
-//                    preparedStmt.setInt(10, 0);
-//                }
-//                preparedStmt.setInt(11, patient.getDoctorInCharge());
-//                preparedStmt.execute();
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
+    public static boolean save(Patient patient) {
+        DatabaseConnector.connect();
+        String sql = "UPDATE patients SET name = ?, `address` = ?, `phoneNumber` = ?, `gender` = ?, `symptoms` = ?, `paymentMethod` = ?, `diagno` = ?, `emergency` = ?, `roomNumber` = ?, `doctorid` = ? WHERE (`idpatients` = ?);";
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement preparedStmt = connection.prepareStatement(sql);) {
+                // Save patient if it exists
+                preparedStmt.setString(1, patient.getName());
+                preparedStmt.setString(2, patient.getAddress());
+                preparedStmt.setString(3, patient.getPhoneNumber());
+                preparedStmt.setString(4, patient.getGender());
+                preparedStmt.setString(5, patient.getSymptoms());
+                preparedStmt.setString(6, patient.getPaymentMethod());
+                preparedStmt.setString(7, patient.getDiagnosis());
+                if (patient.isEmergency()){
+                    preparedStmt.setInt(8, 1);
+                    preparedStmt.setInt(9, Integer.parseInt(patient.getRoomNumber()));
+                }
+                else{
+                    preparedStmt.setInt(8, 0);
+                    preparedStmt.setInt(9, 0);
+                }
+                preparedStmt.setInt(10, patient.getDoctorInCharge());
+                preparedStmt.setInt(11, patient.getID());
+                preparedStmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+//    public static Boolean save(Patient patient){
+//        if (delete(patient) && add(patient)){
+//            System.out.println("Save Successful");
+//            return true;
 //        }
-//        return true;
+//        else    {
+//            System.out.println("Save Failed");
+//            return false;
+//        }
+//
 //    }
-    public static Boolean save(Patient patient){
-        if (delete(patient) && add(patient)){
-            System.out.println("Save Successful");
-            return true;
-        }
-        else    {
-            System.out.println("Save Failed");
-            return false;
-        }
-
-    }
 
     public static boolean delete(Patient patient) {
         patients.remove(patient);
@@ -211,6 +221,22 @@ public abstract class Patient extends Person {
             throw new RuntimeException(e);
         }
     }
+    private static int loadLastId() {
+        DatabaseConnector.connect();
+        int lastId = 1; // Default value if loading fails
+        String query = "SELECT MAX(idpatients) AS idpatients FROM patients";
+        try (Connection conn = DatabaseConnector.connection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                lastId = rs.getInt("idpatients");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lastId;
+    }
+    public static HashSet<Patient> loadPatients() { return patients;}
     public static HashSet<Patient> loadToHashSet(){
         return new HashSet<>(patientsMap.values());
     }
@@ -218,7 +244,6 @@ public abstract class Patient extends Person {
     public String toString() {
         return "Patient{[%d] %s %s %s %s %s %s %s %b %d}".formatted(getID(), name, address, phoneNumber, gender, symptoms, paymentMethod, diagnosis, emergency);
     }
-
     public String getRoomNumber() {
         return roomNumber;
     }
