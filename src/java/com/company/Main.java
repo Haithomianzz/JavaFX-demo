@@ -60,6 +60,7 @@ public class Main extends Application implements Style {
         BorderPane doctorsT = new BorderPane();
         BorderPane patientsT = new BorderPane();
         BorderPane appointmentsT = new BorderPane();
+        BorderPane roomsT = new BorderPane();
         VBox diagnosisM = new VBox(20);
         BorderPane schedule = new BorderPane();
         // Scenes
@@ -73,6 +74,7 @@ public class Main extends Application implements Style {
         Scene AppointmentsTable = new Scene(appointmentsT, Resolution[0], Resolution[1]);
         Scene DiagnosisMenu = new Scene(diagnosisM);
         Scene ApptSchedule = new Scene(schedule,Resolution[0],Resolution[1]);
+        Scene RoomsTable = new Scene(roomsT, Resolution[0], Resolution[1]);
         // Menu Page
         {
             Image backgroundImage = new Image("file:src/java/com/company/resources/background.png");
@@ -262,14 +264,14 @@ public class Main extends Application implements Style {
                 Button appointmentsButton = new Button();
                 appointmentsButton.setGraphic(new ImageView(new Image(APPTS_ICON)));
                 appointmentsButton.setStyle(Style.ButtonStyle);
-                //appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
+                appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
 
                 Label roomLabel = new Label("Rooms");
                 GridPane.setHalignment(roomLabel, HPos.CENTER);
                 Button roomsButton = new Button();
                 roomsButton.setGraphic(new ImageView(new Image(ROOM_ICON)));
                 roomsButton.setStyle(Style.ButtonStyle);
-                //roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
+                roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
 
                 Label logoutLabel = new Label("Log Out");
                 GridPane.setHalignment(logoutLabel, HPos.CENTER);
@@ -415,14 +417,14 @@ public class Main extends Application implements Style {
             genderCol.setStyle(H3);
             genderCol.setCellValueFactory(new PropertyValueFactory<>("gender"));
 
-            TableColumn<Patient, Integer> roomCol = new TableColumn<>("Room");
+            /*TableColumn<Patient, Integer> roomCol = new TableColumn<>("Room");
             roomCol.setMinWidth(100);
             roomCol.setStyle(H3);
-            roomCol.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
+            roomCol.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));*/
 
-            patientsTable.getColumns().addAll(idCol,nameCol, phoneCol, addressCol, genderCol,roomCol);
+            patientsTable.getColumns().addAll(idCol,nameCol, phoneCol, addressCol, genderCol);
 
-            double tableWidth = idCol.getMinWidth() + nameCol.getMinWidth()+ phoneCol.getMinWidth() + addressCol.getMinWidth() + genderCol.getMinWidth() + roomCol.getMinWidth();
+            double tableWidth = idCol.getMinWidth() + nameCol.getMinWidth()+ phoneCol.getMinWidth() + addressCol.getMinWidth() + genderCol.getMinWidth();
             patientsTable.setMaxWidth(tableWidth+15);
 
 
@@ -475,12 +477,12 @@ public class Main extends Application implements Style {
             Button appointmentsButton = new Button("Appointments");
             appointmentsButton.setStyle(Style.ButtonStyle);
             appointmentsButton.setPrefWidth(250);
-            //appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
+            appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
 
             Button roomsButton = new Button("Rooms");
             roomsButton.setStyle(Style.ButtonStyle);
             roomsButton.setPrefWidth(250);
-            //roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
+            roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
 
 
             Button logoutButton = new Button("Logout");
@@ -607,12 +609,12 @@ public class Main extends Application implements Style {
             Button appointmentsButton = new Button("Appointments");
             appointmentsButton.setStyle(Style.ButtonStyle);
             appointmentsButton.setPrefWidth(250);
-            //appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
+            appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
 
             Button roomsButton = new Button("Rooms");
             roomsButton.setStyle(Style.ButtonStyle);
             roomsButton.setPrefWidth(250);
-            //roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
+            roomsButton.setOnAction(_ -> window.setScene(RoomsTable));
 
 
             Button logoutButton = new Button("Logout");
@@ -628,6 +630,112 @@ public class Main extends Application implements Style {
             doctorsT.setRight(new VBox());
             doctorsT.setBottom(new HBox());
 
+        }
+        // rooms table
+        {
+            Label roomsLabel = new Label("Rooms Table");
+            roomsLabel.setStyle(TableLabel);
+
+            ObservableList<Patient> patients = FXCollections.observableArrayList();
+            for (Patient p: getPatients())
+                if (p.getRoomNumber().equals("N/A"))
+                    continue;
+                else
+                    patients.add(p);
+
+            TableView<Patient> roomsTable = new TableView<>(patients);
+            roomsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+            roomsTable.setFixedCellSize(50);
+            roomsTable.setPrefHeight(995);
+
+            TableColumn<Patient, Integer> roomCol = new TableColumn<>("Room");
+            roomCol.setMinWidth(100);
+            roomCol.setStyle(H3);
+            roomCol.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
+
+            TableColumn<Patient,Integer> idCol = new TableColumn<>("ID");
+            idCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+            idCol.setMinWidth(80);
+            idCol.setStyle(H3);
+
+            TableColumn<Patient, String> nameCol = new TableColumn<>("Full Name");
+            nameCol.setMinWidth(400);
+            nameCol.setStyle(H3);
+            nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+            TableColumn<Patient, String> symptomsCol = new TableColumn<>("Symptoms");
+            symptomsCol.setMinWidth(400);
+            symptomsCol.setStyle(H3);
+            symptomsCol.setCellValueFactory(new PropertyValueFactory<>("symptoms"));
+
+            double tableWidth = roomCol.getMinWidth() +idCol.getMinWidth() + nameCol.getMinWidth() + symptomsCol.getMinWidth();
+            roomsTable.setMaxWidth(tableWidth+15);
+
+            roomsTable.getColumns().addAll(roomCol, idCol,nameCol,symptomsCol);
+
+            String[] labels = new String[]{"Back", "Save", "Delete"};
+            Button[] button = new Button[labels.length];
+            for (int i = 0; i < labels.length; i++) {
+                button[i] = new Button(labels[i]);
+                button[i].setPrefSize(210, 80);
+                button[i].setStyle(ButtonStyle);
+            }
+            button[0].setOnAction(_ -> window.setScene(AdminDashboard));
+            button[1].setOnAction(_ -> AlertBox.alert("Save Successful","Successfully saved Room Information to server...","Got it"));
+            button[2].setOnAction(_ -> {
+                if (!roomsTable.getSelectionModel().getSelectedItems().isEmpty()) {
+                    for (Patient p : roomsTable.getSelectionModel().getSelectedItems()){
+                        patients.remove(p);
+                        Patient.delete(p);
+                    }
+                    roomsTable.getSelectionModel().clearSelection();
+                } else
+                    AlertBox.alert("Warning", "No Patient Selected, Please Select Patient(s) to Delete!", "Got it");
+            });
+            HBox bar = new HBox(42,button);
+            bar.setAlignment(Pos.CENTER);
+            roomsT.getChildren().addAll(roomsLabel, roomsTable, bar);
+
+            VBox tableContent = new VBox(20);
+            tableContent.setAlignment(Pos.CENTER);
+            tableContent.getChildren().addAll(roomsLabel, roomsTable, bar);
+
+            VBox sideMenu = new VBox(20);
+            sideMenu.setPadding(new Insets(20));
+            sideMenu.setStyle("-fx-background-color: #3a4f63;");
+            sideMenu.setPrefWidth(300);
+
+            // buttons//
+
+            Button doctorsButton = new Button("Doctors");
+            doctorsButton.setStyle(Style.ButtonStyle);
+            doctorsButton.setPrefWidth(250);
+            doctorsButton.setOnAction(_ -> window.setScene(DoctorsTable));
+
+            Button patientsTable = new Button("Patients");
+            patientsTable.setStyle(Style.ButtonStyle);
+            patientsTable.setPrefWidth(250);
+            patientsTable.setOnAction(_ -> window.setScene(PatientsTable));
+
+            Button appointmentsButton = new Button("Appointments");
+            appointmentsButton.setStyle(Style.ButtonStyle);
+            appointmentsButton.setPrefWidth(250);
+            appointmentsButton.setOnAction(_ -> window.setScene(AppointmentsTable));
+
+
+            Button logoutButton = new Button("Logout");
+            logoutButton.setStyle(Style.ButtonStyle);
+            logoutButton.setPrefWidth(250);
+            logoutButton.setOnAction(_ -> window.setScene(Menu));
+
+
+            sideMenu.getChildren().addAll(doctorsButton, patientsTable, appointmentsButton, logoutButton);
+
+
+            roomsT.setLeft(sideMenu);
+            roomsT.setCenter(tableContent);
+            roomsT.setRight(new VBox());
+            roomsT.setBottom(new HBox());
         }
         // Appointments Schedule
         {
