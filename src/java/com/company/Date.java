@@ -18,9 +18,8 @@ public class Date {
     public void setYear(int year) {
         this.year = year;
     }
-    
 
-     private LocalDate date;
+    private LocalDate date;
 
      // Constructors
      public Date() {

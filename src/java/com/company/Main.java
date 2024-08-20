@@ -36,6 +36,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import javax.swing.event.ChangeListener;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Set;
@@ -43,6 +45,7 @@ import static com.database.Handler.verifyCredentials;
 public class Main extends Application implements Style {
     private Stage window;
     private static Doctor SessionDoctor;
+    private final ObservableList<Patient> SessionPatients = FXCollections.observableArrayList();
     private YearMonth currentMonth;
     private GridPane calendarGrid;
     private Label monthLabel;
@@ -59,9 +62,9 @@ public class Main extends Application implements Style {
         VBox doctorDashboard = new VBox();
         BorderPane doctorsT = new BorderPane();
         BorderPane patientsT = new BorderPane();
+        BorderPane doctorPatientsT = new BorderPane();
         BorderPane appointmentsT = new BorderPane();
         BorderPane roomsT = new BorderPane();
-        VBox diagnosisM = new VBox(20);
         BorderPane schedule = new BorderPane();
         // Scenes
         Scene Menu = new Scene(menuPane, Resolution[0], Resolution[1]);
@@ -71,8 +74,8 @@ public class Main extends Application implements Style {
         Scene DoctorDashboard = new Scene(doctorDashboard, Resolution[0],Resolution[1]);
         Scene DoctorsTable = new Scene(doctorsT, Resolution[0], Resolution[1]);
         Scene PatientsTable = new Scene(patientsT, Resolution[0], Resolution[1]);
+        Scene DoctorPatientsTable = new Scene(doctorPatientsT, Resolution[0], Resolution[1]);
         Scene AppointmentsTable = new Scene(appointmentsT, Resolution[0], Resolution[1]);
-        Scene DiagnosisMenu = new Scene(diagnosisM);
         Scene ApptSchedule = new Scene(schedule,Resolution[0],Resolution[1]);
         Scene RoomsTable = new Scene(roomsT, Resolution[0], Resolution[1]);
         // Menu Page
@@ -196,10 +199,15 @@ public class Main extends Application implements Style {
                 if (verifyCredentials(enteredUsername, enteredPassword)) {
                     resultLabel.setText("Successful Login!");
                     resultLabel.setStyle(Success + H2);
-                        if (getUserType().equals("Admin"))
-                            window.setScene(AdminDashboard);
-                        else if (getUserType().equals("Doctor"))
-                            window.setScene(DoctorDashboard);
+                    if (getUserType().equals("Admin"))
+                        window.setScene(AdminDashboard);
+                    else if (getUserType().equals("Doctor")){
+                        for (Patient p : getPatients()){
+                            if (p.getDoctorInCharge() == SessionDoctor.getID())
+                                SessionPatients.add(p);
+                            }
+                        window.setScene(DoctorDashboard);
+                    }
                 } else {
                     resultLabel.setText("Incorrect Credentials!");
                     resultLabel.setStyle(Warning + H2);
@@ -330,10 +338,11 @@ public class Main extends Application implements Style {
             });
             Label patientLabel = new Label("Patients");
             GridPane.setHalignment(patientLabel, HPos.CENTER);
+
             Button patientProfile = new Button();
             patientProfile.setGraphic(new ImageView(new Image(Style.PATIENTS_ICON)));
             patientProfile.setStyle(Style.ButtonStyle);
-            // patientProfile.setOnAction(_ -> window.setScene(patientProfileTable));
+            patientProfile.setOnAction(_ -> window.setScene(DoctorPatientsTable));
 
             Label  apptSchedLabel = new Label("Appointments Schedule");
             GridPane.setHalignment(apptSchedLabel, HPos.CENTER);
@@ -347,7 +356,7 @@ public class Main extends Application implements Style {
             Button writeDiagnosis = new Button();
             writeDiagnosis.setGraphic(new ImageView(new Image(Style.DIAGNOSIS_ICON)));
             writeDiagnosis.setStyle(Style.ButtonStyle);
-            writeDiagnosis.setOnAction(_ -> window.setScene(DiagnosisMenu));
+            writeDiagnosis.setOnAction(_ -> DiagnoseWindow());
 
             Label logoutLabel = new Label("Log Out");
             GridPane.setHalignment(logoutLabel, HPos.CENTER);
@@ -499,6 +508,101 @@ public class Main extends Application implements Style {
             patientsT.setRight(new VBox());
             patientsT.setBottom(new HBox());
         }
+        // Doctor's Patients Table
+        {
+            Label PatLabel = new Label("Patients Table");
+            PatLabel.setStyle(TableLabel);
+
+            TableView<Patient> patientsTable = new TableView<>(SessionPatients);
+            patientsTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+            patientsTable.setFixedCellSize(50);
+            patientsTable.setPrefHeight(995);
+
+            TableColumn<Patient,Integer> idCol = new TableColumn<>("ID");
+            idCol.setCellValueFactory(new PropertyValueFactory<>("ID"));
+            idCol.setMinWidth(80);
+            idCol.setStyle(H3);
+
+            TableColumn<Patient, String> nameCol = new TableColumn<>("Full Name");
+            nameCol.setMinWidth(400);
+            nameCol.setStyle(H3);
+            nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+            TableColumn<Patient, Boolean> emergencyCol = new TableColumn<>("Emergency");
+            emergencyCol.setMinWidth(300);
+            emergencyCol.setStyle(H3);
+            emergencyCol.setCellValueFactory(new PropertyValueFactory<>("emergency"));
+
+            TableColumn<Patient, String> roomCol = new TableColumn<>("Room");
+            roomCol.setMinWidth(100);
+            roomCol.setStyle(H3);
+            roomCol.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
+
+            patientsTable.getColumns().addAll(idCol,nameCol,emergencyCol, roomCol );
+            double tableWidth = idCol.getMinWidth() + nameCol.getMinWidth() +emergencyCol.getWidth() +roomCol.getMinWidth();
+            patientsTable.setMaxWidth(tableWidth+15);
+
+            String[] labels = new String[]{"Back", "Save", "Discharge"};
+            Button[] button = new Button[labels.length];
+            for (int i = 0; i < labels.length; i++) {
+                button[i] = new Button(labels[i]);
+                button[i].setPrefSize(210, 80);
+                button[i].setStyle(ButtonStyle);
+            }
+            button[0].setOnAction(_ -> window.setScene(DoctorDashboard));
+            button[1].setOnAction(_ -> AlertBox.alert("Save Successful","Successfully saved Patient Information to server...","Got it"));
+            button[2].setOnAction(_ -> {
+                if (patientsTable.getSelectionModel().getSelectedItems().size() == 1){
+                    patientsTable.getSelectionModel().getSelectedItem().setEmergency(false);
+                    patientsTable.refresh();
+                }
+                else
+                    AlertBox.alert("Warning", "No Patient Selected to discharge!", "Got it");
+            });
+            HBox bar = new HBox(42,button);
+            bar.setAlignment(Pos.CENTER);
+            doctorPatientsT.getChildren().addAll(PatLabel, patientsTable, bar);
+
+            VBox tableContent = new VBox(20);
+            tableContent.setAlignment(Pos.CENTER);
+            tableContent.getChildren().addAll(PatLabel, patientsTable, bar);
+
+            VBox sideMenu = new VBox(10);
+            sideMenu.setPadding(new Insets(20));
+            sideMenu.setStyle("-fx-background-color: #3a4f63;");
+            sideMenu.setPrefWidth(300);
+
+            Button doctorProfileButton = new Button("Doctor Profile");
+            doctorProfileButton.setStyle(ButtonStyle);
+            doctorProfileButton.setPrefWidth(250);
+            doctorProfileButton.setOnAction(_ -> {
+            ObservableList<Doctor> doctors = FXCollections.observableArrayList();
+            doctors.add(SessionDoctor);
+            editDoctor(doctors,1);
+            });
+
+            Button appointmentButton = new Button("Appointments");
+            appointmentButton.setStyle(ButtonStyle);
+            appointmentButton.setPrefWidth(250);
+            appointmentButton.setOnAction(_ -> window.setScene(ApptSchedule));
+
+            Button Back = new Button("Back");
+            Back.setStyle(ButtonStyle);
+            Back.setPrefWidth(250);
+            Back.setOnAction(_ -> window.setScene(DoctorDashboard));
+
+            Button logOutButton = new Button("Log Out");
+            logOutButton.setStyle(ButtonStyle);
+            logOutButton.setPrefWidth(250);
+            logOutButton.setOnAction(_ -> window.setScene(Menu));
+
+            sideMenu.getChildren().addAll(doctorProfileButton, appointmentButton, Back, logOutButton);
+
+            doctorPatientsT.setLeft(sideMenu);
+            doctorPatientsT.setCenter(tableContent);
+            doctorPatientsT.setRight(new VBox());
+            doctorPatientsT.setBottom(new HBox());
+        }
         // Appointments Table
         {
             Label AptLabel = new Label("Appointments");
@@ -568,19 +672,24 @@ public class Main extends Application implements Style {
             button[0].setOnAction(_ -> window.setScene(AdminDashboard));
             button[1].setOnAction(_ -> AlertBox.alert("Save Successful","Successfully saved Doctor Information to server...","Got it"));
             button[2].setOnAction(_ -> {
-                if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1)
+                if (doctorsTable.getSelectionModel().getSelectedItems().size() == 1){
                     editDoctor(doctorsTable.getSelectionModel().getSelectedItems(), 1);
+                    doctorsTable.refresh();
+                }
                 else
                     AlertBox.alert("Warning", "Please Select one Doctor at a time!", "Got it");
-
             });
 
-            button[3].setOnAction(_ -> editDoctor(doctors, 0));
+            button[3].setOnAction(_ -> {
+                editDoctor(doctors, 0);
+                doctorsTable.refresh();
+            });
             button[4].setOnAction(_ -> {
                 if (!doctorsTable.getSelectionModel().getSelectedItems().isEmpty()) {
                     for (Doctor d : doctorsTable.getSelectionModel().getSelectedItems()){
                         doctors.remove(d);
                         Doctor.delete(d);
+                        doctorsTable.refresh();
                     }
                         doctorsTable.getSelectionModel().clearSelection();
                 } else
@@ -751,10 +860,16 @@ public class Main extends Application implements Style {
             Button doctorProfileButton = new Button("Doctor Profile");
             doctorProfileButton.setStyle(ButtonStyle);
             doctorProfileButton.setPrefWidth(250);
+            doctorProfileButton.setOnAction(_ -> {
+                ObservableList<Doctor> doctors = FXCollections.observableArrayList();
+                doctors.add(SessionDoctor);
+                editDoctor(doctors,1);
+            });
 
             Button patientsButton = new Button("Patients");
             patientsButton.setStyle(ButtonStyle);
             patientsButton.setPrefWidth(250);
+            patientsButton.setOnAction(_ -> window.setScene(DoctorPatientsTable));
 
             Button Back = new Button("Back");
             Back.setStyle(ButtonStyle);
@@ -823,82 +938,88 @@ public class Main extends Application implements Style {
 
 
         }
-        // Diagnosis Menu
-        {
-            Label diagnosisLabel = new Label("Diagnoses");
-            diagnosisLabel.setStyle(H1);
-            diagnosisLabel.setAlignment(Pos.CENTER);
-            TreeItem<String> root = new TreeItem<>();
-            root.setExpanded(true);
-            TreeItem<String> diagnosed = makeBranch("Diagnosed ✅",root);
-            TreeItem<String> undiagnosed = makeBranch("Undiagnosed 📄",root);
-            for (Patient patient : getPatients()) {
-                if(patient.getDiagnosis() != null)
-                    makeBranch(patient.getName(), diagnosed);
-                else
-                    makeBranch(patient.getName(), undiagnosed);
-            }
-            TreeView<String> diagnosisList = new TreeView<>(root);
-            diagnosisList.setShowRoot(false);
-            diagnosisList.setStyle(H3);
-            diagnosisList.setPrefWidth(500);
-            diagnosisList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-            String[] labels = new String[]{"View", "Diagnose", "Edit", "Back"};
-            Button[] button = new Button[labels.length];
-            for (int i = 0; i < labels.length; i++) {
-                button[i] = new Button(labels[i]);
-                button[i].setPrefSize(210, 80);
-                button[i].setStyle(ButtonStyle);
-            }
-            button[0].setOnAction(_ -> {
-                if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
-                    for (Patient patient : getPatients()){
-                        if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue()))
-                            Diagnose(patient,0);
-                    }
-                else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
-                    AlertBox.alert("Warning", "Please Select a diagnosed Patient...", "Got it");
-                else
-                    AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to view...", "Got it");
-            });
-            button[1].setOnAction(_ -> {
-                if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
-                    for (Patient patient : getPatients()){
-                        if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue())){
-                            Diagnose(patient,1);
-                            moveBranch(diagnosisList.getSelectionModel().getSelectedItem(),diagnosed);
-                        }
-                    }
-                else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
-                    AlertBox.alert("Warning", "Please Select an Undiagnosed Patient...", "Got it");
-                else
-                    AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to diagnose...", "Got it");
-            });
-            button[2].setOnAction(_ -> {
-                if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
-                    for (Patient patient : getPatients()){
-                        if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue()))
-                            Diagnose(patient,1);
-                    }
-                else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
-                    AlertBox.alert("Warning", "Please Select a Diagnosed Patient...", "Got it");
-                else
-                    AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to view...", "Got it");
-            });
-            button[3].setOnAction(_ -> window.setScene(DoctorDashboard));
-            VBox bar = new VBox(26,button);
-            bar.setAlignment(Pos.CENTER);
-            HBox middle = new HBox(20, diagnosisList, bar);
-            middle.setAlignment(Pos.CENTER);
-            diagnosisM.getChildren().addAll(diagnosisLabel,middle);
-            diagnosisM.setAlignment(Pos.CENTER);
-            diagnosisM.setPadding(new Insets(20,20,20,20));
-        }
         window.setScene(Menu);
         window.show();
     }
     public static void main(String[] args) {
         launch();
+    }
+    private void DiagnoseWindow(){
+        Stage window = new Stage();
+        VBox diagnosisM = new VBox(20);
+        window.setTitle("Diagnoses Menu");
+        window.initModality(Modality.APPLICATION_MODAL);
+        Label diagnosisLabel = new Label("Diagnoses");
+        diagnosisLabel.setStyle(H1);
+        diagnosisLabel.setAlignment(Pos.CENTER);
+        TreeItem<String> root = new TreeItem<>();
+        root.setExpanded(true);
+        TreeItem<String> diagnosed = makeBranch("Diagnosed ✅",root);
+        TreeItem<String> undiagnosed = makeBranch("Undiagnosed 📄",root);
+        for (Patient patient : SessionPatients) {
+            if(patient.getDiagnosis() != null)
+                makeBranch(patient.getName(), diagnosed);
+            else
+                makeBranch(patient.getName(), undiagnosed);
+        }
+        TreeView<String> diagnosisList = new TreeView<>(root);
+        diagnosisList.setShowRoot(false);
+        diagnosisList.setStyle(H3);
+        diagnosisList.setPrefWidth(500);
+        diagnosisList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        String[] labels = new String[]{"View", "Diagnose", "Edit", "Back"};
+        Button[] button = new Button[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            button[i] = new Button(labels[i]);
+            button[i].setPrefSize(210, 80);
+            button[i].setStyle(ButtonStyle);
+        }
+        button[0].setOnAction(_ -> {
+            if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
+                for (Patient patient : SessionPatients){
+                    if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue()))
+                        Diagnose(patient,0);
+                }
+            else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
+                AlertBox.alert("Warning", "Please Select a diagnosed Patient...", "Got it");
+            else
+                AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to view...", "Got it");
+        });
+        button[1].setOnAction(_ -> {
+            if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
+                for (Patient patient : SessionPatients){
+                    if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue())){
+                        Diagnose(patient,1);
+                        moveBranch(diagnosisList.getSelectionModel().getSelectedItem(),diagnosed);
+                    }
+                }
+            else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
+                AlertBox.alert("Warning", "Please Select an Undiagnosed Patient...", "Got it");
+            else
+                AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to diagnose...", "Got it");
+        });
+        button[2].setOnAction(_ -> {
+            if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == diagnosed)
+                for (Patient patient : SessionPatients){
+                    if (patient.getName().equals(diagnosisList.getSelectionModel().getSelectedItem().getValue()))
+                        Diagnose(patient,1);
+                }
+            else if (diagnosisList.getSelectionModel().getSelectedItem().getParent() == undiagnosed)
+                AlertBox.alert("Warning", "Please Select a Diagnosed Patient...", "Got it");
+            else
+                AlertBox.alert("Warning", "No Patient Selected, Please Select Patient to view...", "Got it");
+        });
+        button[3].setOnAction(_ -> window.close());
+        VBox bar = new VBox(26,button);
+        bar.setAlignment(Pos.CENTER);
+        HBox middle = new HBox(20, diagnosisList, bar);
+        middle.setAlignment(Pos.CENTER);
+        diagnosisM.getChildren().addAll(diagnosisLabel,middle);
+        diagnosisM.setAlignment(Pos.CENTER);
+        diagnosisM.setPadding(new Insets(20,20,20,20));
+        Scene DiagnosisMenu = new Scene(diagnosisM);
+        window.setScene(DiagnosisMenu);
+        window.show();
     }
     private void Diagnose(Patient patient, int mode){
         Stage window = new Stage();
@@ -1015,7 +1136,7 @@ public class Main extends Application implements Style {
         updateMonthLabel();
 
     }
-    private void moveBranch (TreeItem<String> branch, TreeItem<String> target){
+    private void moveBranch(TreeItem<String> branch, TreeItem<String> target){
         branch.getParent().getChildren().remove(branch);
         target.getChildren().add(branch);
     }
@@ -1128,7 +1249,7 @@ public class Main extends Application implements Style {
         confirmButton.setStyle(ButtonStyle);
         confirmButton.setOnAction(_ -> {
             if (checkEmptyForm(fields)){
-                if (Doctors.getSelectionModel().getSelectedIndex() == 1)
+                if (Doctors.getValue().equals("Doctor..."))
                       AlertBox.alert("Warning","Please add the missing Information","Got it");
             }
             else {
@@ -1252,6 +1373,67 @@ public class Main extends Application implements Style {
         buttons.getChildren().addAll(confirmButton,cancelButton);
         window.setScene(new Scene(layout));
         window.show();
+    }
+    private void editAppointment(Appointment appointment, int mode) {
+            Stage window = new Stage();
+            window.setTitle("Editing Appointment");
+            window.setResizable(false);
+            window.initModality(Modality.APPLICATION_MODAL);
+
+            Label label = new Label();
+            label.setStyle(H1);
+            label.setAlignment(Pos.CENTER);
+            label.setText("Make Appointment");
+            label.setPadding(new Insets(20,20,0,20));
+
+            HBox buttons = new HBox(30);
+            GridPane grid = new GridPane();
+            VBox layout = new VBox(5,label,grid,buttons);
+            layout.setAlignment(Pos.CENTER);
+            grid.setAlignment(Pos.CENTER);
+            buttons.setAlignment(Pos.CENTER);
+            grid.setHgap(20);
+            grid.setVgap(5);
+            grid.setPadding(new Insets(20,20,20,20));
+
+            String[] forms = new String[]{"Doctor","Patient","Date"};
+            Label[] labels = new Label[forms.length];
+            for (int i = 0; i < forms.length; i++) {
+                labels[i] = new Label(forms[i] + ":");
+                labels[i].setStyle(H2);
+//                fields[i].setMaxSize(400,200);
+                grid.add(labels[i],0,i);
+            }
+            ChoiceBox<String> Doctors = new ChoiceBox<>();
+            Doctors.getItems().add("Doctor...");
+            Doctors.getSelectionModel().select("Doctor...");
+            for (Doctor d: getDoctors())
+                Doctors.getItems().add(d.getName());
+            Doctors.setStyle(H3);
+        Doctors.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
+
+        });
+
+            grid.add(Doctors,1,0);
+
+            if (mode == 1){
+                if (appointment != null){
+                    window.setTitle("Edit Appointment");
+                    label.setText("Appointment #"+ appointment.getID());
+                }
+            }
+            Button confirmButton = new Button("Confirm");
+            confirmButton.setStyle(ButtonStyle);
+            confirmButton.setOnAction(_ -> {
+                AlertBox.alert("Warning","Please add the missing Information","Got it");
+                window.close();
+            });
+            Button cancelButton = new Button("Cancel");
+            cancelButton.setStyle(ButtonStyle);
+            cancelButton.setOnAction(_ -> window.close());
+            buttons.getChildren().addAll(confirmButton,cancelButton);
+            window.setScene(new Scene(layout));
+            window.show();
     }
     private Set<Doctor> getDoctors(){return Doctor.loadDoctors();}
     private Set<Patient> getPatients(){return Patient.loadPatients();}

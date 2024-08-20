@@ -17,7 +17,8 @@ public class Appointment {
 
     private int patientId;
     private int doctorId;
-    private String Date;
+    private com.company.Date Date;
+    private String DateString;
     private static int lastId = loadLastId();
     private final int ID = lastId++;
     private static Set<Appointment> appointments = new HashSet<>();
@@ -54,10 +55,7 @@ public class Appointment {
         String sql = "INSERT INTO appointments (idappointments, physicianId, patientId) VALUES (?, ?)";
         try (var connection = DatabaseConnector.connection();
              PreparedStatement preparedStmt = connection.prepareStatement(sql)) {
-
-
             ResultSet resultSet = preparedStmt.executeQuery();
-
             for (Appointment appointment : appointments) {
                 preparedStmt.setInt(1, appointment.getID());
                 preparedStmt.setInt(2, appointment.getDoctorId());
@@ -68,7 +66,6 @@ public class Appointment {
         }
         return true;
     }
-
     private static int loadLastId() {
         DatabaseConnector.connect();
         int lastId = 1; // Default value if loading fails
@@ -84,11 +81,9 @@ public class Appointment {
         }
         return lastId;
     }
-
     private static HashSet<Appointment> loadToHashSet(){
         return new HashSet<>(Handler.loadAppointments().values());
     }
-
 }
     
 
