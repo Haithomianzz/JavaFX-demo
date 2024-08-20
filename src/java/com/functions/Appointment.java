@@ -4,14 +4,9 @@ package com.functions;
 import com.database.DatabaseConnector;
 import com.database.Handler;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.*;
 
 public class Appointment {
 
@@ -19,52 +14,114 @@ public class Appointment {
     private int doctorId;
     private com.company.Date Date;
     private String DateString;
-    private static int lastId = loadLastId();
-    private final int ID = lastId++;
-    private static Set<Appointment> appointments = new HashSet<>();
-
+    private static int lastId;
+    private final int ID;
+    private static HashSet<Appointment> appointments = new HashSet<>();
+    private static Map<Integer, Appointment> appointmentHashMap = new HashMap<>();
     static {
+        lastId = loadLastId();
         appointments = loadToHashSet(); // Load from database after initialization
-        Map<Integer, Appointment> appointmentHashMap = Handler.loadAppointments();
+        appointmentHashMap = Handler.loadAppointments();
     }
-
-    public Appointment(int patientId, int doctorId) {
-        this.doctorId = patientId;
+    public Appointment(int doctorId, int patientId,  LocalDate date) {
+        this.patientId = patientId;
         this.doctorId = doctorId;
-        add(this);
-
+        this.ID = ++lastId;
+        this.Date = new com.company.Date(date);
+        this.DateString = Date.toString();
+        addAppointment(this);
     }
-
+    public Appointment(int ID,int doctorId, int patientId,  String date) {
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.ID = ID;
+        this.Date = new com.company.Date(date);
+        addAppointment(this);
+    }
     public int getPatientId() {
         return patientId;
     }
-
+    private void addAppointment(Appointment appointment) {
+        appointments.add(appointment);
+    }
     public int getDoctorId() {
         return doctorId;
     }
-
+    public com.company.Date getDate() {return Date;}
+    public String getDateString() {return DateString;}
     public int getID() {
         return ID;
     }
-    private void add(Appointment appointment) {
-        appointments.add(appointment);
+    public Boolean EditAppointment(Integer newPatientId, Integer newDoctorId, LocalDate newDate) {
+        if (newDate != null && newDate.isAfter(LocalDate.now())) {
+            this.doctorId = (newDoctorId != null) ? newDoctorId : this.doctorId;
+            this.patientId = (newPatientId != null) ? newPatientId : this.patientId;
+            this.Date = new com.company.Date(newDate);
+            return true;
+        }
+        else
+            return false;
     }
-
-    public static boolean save() {
+    public static boolean add(Appointment appointment) {
+        appointments.add(appointment);
         DatabaseConnector.connect();
-        String sql = "INSERT INTO appointments (idappointments, physicianId, patientId) VALUES (?, ?)";
+        String sql = "INSERT INTO appointments (idappointments, physicianId, patientId, date) VALUES (?, ?, ?, ?)";
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement preparedStmt = connection.prepareStatement(sql); ){
+            // Save patient if no duplicates
+            preparedStmt.setInt(1, appointment.getID());
+            preparedStmt.setInt(2, appointment.getPatientId());
+            preparedStmt.setInt(3, appointment.getDoctorId());
+            preparedStmt.setString(4, appointment.getDate().toString());
+            preparedStmt.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+    public static boolean save(Appointment appointment) {
+        DatabaseConnector.connect();
+        String sql = "UPDATE appointments SET physicianId = ?, patientId = ?, date = ? WHERE idappointments = ?";
         try (var connection = DatabaseConnector.connection();
              PreparedStatement preparedStmt = connection.prepareStatement(sql)) {
-            ResultSet resultSet = preparedStmt.executeQuery();
-            for (Appointment appointment : appointments) {
-                preparedStmt.setInt(1, appointment.getID());
-                preparedStmt.setInt(2, appointment.getDoctorId());
-                preparedStmt.setInt(3, appointment.getPatientId());
-            }
+            preparedStmt.setInt(1, appointment.getDoctorId());
+            preparedStmt.setInt(2, appointment.getPatientId());
+            preparedStmt.setString(3, appointment.Date.toString());
+            preparedStmt.setInt(4, appointment.getID());
+            preparedStmt.executeUpdate();
         }catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return true;
+    }
+    public static boolean delete(Appointment appointment) {
+        appointments.remove(appointment);
+        DatabaseConnector.connect();
+        String qry = "DELETE FROM appointments WHERE idappointments= '%s'".formatted(appointment.getID());
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement preparedStatement = connection.prepareStatement(qry);
+        ) {
+            preparedStatement.execute();
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static boolean isThereAppointment(LocalDate targetDate) {
+        for (Appointment appointment : appointments) {
+            if (appointment.getDate().getDate().equals(targetDate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static Appointment atDate(LocalDate targetDate) {
+        for (Appointment appointment : appointments) {
+            if (appointment.getDate().getDate().equals(targetDate)) {
+                return appointment;
+            }
+        }
+        return null;
     }
     private static int loadLastId() {
         DatabaseConnector.connect();
@@ -81,9 +138,8 @@ public class Appointment {
         }
         return lastId;
     }
+    public static HashSet<Appointment> loadAppointments(){return appointments;}
     private static HashSet<Appointment> loadToHashSet(){
-        return new HashSet<>(Handler.loadAppointments().values());
+        return new HashSet<>(appointmentHashMap.values());
     }
 }
-    
-

@@ -25,7 +25,9 @@ public class Date {
      public Date() {
          this.date = LocalDate.now();
      }
-
+     public Date(LocalDate date) {
+         this.date = date;
+     }
      public Date(String dateString) {
          this.setDate(dateString);
      }
@@ -34,7 +36,6 @@ public class Date {
      public LocalDate getDate() {
          return date;
      }
-
      // Set date from a string
      public boolean setDate(String dateString) {
          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

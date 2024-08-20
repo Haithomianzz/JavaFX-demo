@@ -158,24 +158,16 @@ public abstract class Patient extends Person {
     public static boolean delete(Patient patient) {
         patients.remove(patient);
         DatabaseConnector.connect();
-        String query = "SELECT * FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
         String qry = "DELETE FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
         try (var connection = DatabaseConnector.connection();
              Statement statement = connection.createStatement();
              PreparedStatement preparedStatement = connection.prepareStatement(qry);
         ) {
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                if (resultSet.getInt("idpatients") == (patient.getID())) {
-                    preparedStatement.execute();
-                    return true;
-                }
-            }
-            System.out.println("record doesn't exist");
+            preparedStatement.execute();
+            return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return false;
     }
     public static boolean add(Patient patient) {
         patients.add(patient);

@@ -147,14 +147,13 @@ public class Handler {
             // Process the result set and populate the HashMap
             while (resultSet.next()) {
                 int id = resultSet.getInt("idappointments");
-                Appointment appointment = new Appointment(
+                Appointment appointment = new Appointment(id,
                         resultSet.getInt("physicianId"),
-                        resultSet.getInt("patientId")
+                        resultSet.getInt("patientId"),
+                        resultSet.getString("date")
                 );
-
                 appointments.put(id, appointment);
             }
-
             // Close the ResultSet and PreparedStatement
             resultSet.close();
             preparedStatement.close();

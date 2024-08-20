@@ -44,15 +44,12 @@ public class Doctor extends Person{
     public int getID() {
         return ID;
     }
-
     public static Set<Doctor> getDoctors() {
         return doctors;
     }
-
     private void addDoctor(Doctor doctor) {
         doctors.add(doctor);
     }
-
     public void EditDoctor(String newName, String newAddress, String newPhoneNumber, String newSpecialty) {
         // Retrieve the doctor object from the map using the provided doctorId
             // Update fields only if new values are provided
