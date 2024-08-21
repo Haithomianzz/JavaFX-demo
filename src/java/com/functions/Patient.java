@@ -71,6 +71,7 @@ public abstract class Patient extends Person {
     public String getDiagnosis() {
         return diagnosis;
     }
+//    public void setRoomNumber(){}
     public void setDiagnosis(String diagnosis) {
         this.diagnosis = diagnosis;
     }
@@ -83,8 +84,11 @@ public abstract class Patient extends Person {
     public int getID() {
         return ID;
     }
-    protected void setRoomNumber(int roomNumber) {
-        this.roomNumber = String.valueOf(roomNumber);
+    public void setRoomNumber(Integer roomNumber) {
+        if (roomNumber == null || roomNumber == 0)
+            this.roomNumber = "N/A";
+        else
+            this.roomNumber = String.valueOf(roomNumber);
     }
     public void setDoctorInCharge(int doctorInCharge) {
         this.doctorInCharge = doctorInCharge;
@@ -98,7 +102,6 @@ public abstract class Patient extends Person {
     }
     public void EditPatient(String newName, String newAddress, String newPhoneNumber, String newGender,
                              String newSymptoms, String newPaymentMethod,String newRoomNumber, Boolean newEmergency, Integer doctorInCharge) {
-        // Retrieve the patient object from the map
         // Update fields only if new values are provided
         this.name = (newName != null) ? newName : this.name;
         this.address = (newAddress != null) ? newAddress : this.address;
@@ -143,20 +146,13 @@ public abstract class Patient extends Person {
         }
         return true;
     }
-//    public static Boolean save(Patient patient){
-//        if (delete(patient) && add(patient)){
-//            System.out.println("Save Successful");
-//            return true;
-//        }
-//        else    {
-//            System.out.println("Save Failed");
-//            return false;
-//        }
-//
-//    }
 
     public static boolean delete(Patient patient) {
         patients.remove(patient);
+        for (Appointment A : Appointment.loadAppointments())
+            if (A.getPatientId() == patient.getID())
+                Appointment.delete(A);
+
         DatabaseConnector.connect();
         String qry = "DELETE FROM patients WHERE idpatients= '%s'".formatted(patient.getID());
         try (var connection = DatabaseConnector.connection();
@@ -208,6 +204,34 @@ public abstract class Patient extends Person {
         ) {
             statement.executeUpdate(query);
             System.out.println("Patient diagnosed");
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public boolean vacate() {
+        this.roomNumber = "N/A";
+        DatabaseConnector.connect();
+        String query = String.format("UPDATE patients SET roomNumber = NULL WHERE idpatients = '%d';", this.getID());
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement statement = connection.prepareStatement(query);
+        ) {
+            statement.executeUpdate(query);
+            System.out.println("Patient Vacated");
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public boolean discharge() {
+        this.setEmergency(false);
+        DatabaseConnector.connect();
+        String query = String.format("UPDATE patients SET emergency = 0 WHERE idpatients = '%d';", this.getID());
+        try (var connection = DatabaseConnector.connection();
+             PreparedStatement statement = connection.prepareStatement(query);
+        ) {
+            statement.executeUpdate(query);
+            System.out.println("Patient Discharged");
             return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);

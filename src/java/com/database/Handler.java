@@ -104,6 +104,7 @@ public class Handler {
                             resultSet.getString("paymentMethod"),
                             resultSet.getBoolean("emergency"),
                             resultSet.getInt("doctorid"));
+                    patient.setRoomNumber(resultSet.getInt("roomNumber"));
                     patient.setDiagnosis(resultSet.getString("diagno"));
                 }
                 patientHashMap.put(id, patient);

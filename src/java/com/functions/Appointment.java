@@ -36,6 +36,7 @@ public class Appointment {
         this.doctorId = doctorId;
         this.ID = ID;
         this.Date = new com.company.Date(date);
+        this.DateString = Date.toString();
         addAppointment(this);
     }
     public int getPatientId() {
